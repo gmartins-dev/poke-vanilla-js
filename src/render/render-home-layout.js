@@ -1,4 +1,5 @@
 import { pokemonCardTemplate } from "../components/pokemon-card.js";
+import { pokemonCardSkeletonTemplate } from "../components/pokemon-card-skeleton.js";
 import { renderStatus } from "./render-status.js";
 
 function logoTemplate() {
@@ -50,8 +51,14 @@ export function renderHomeLayout(
 	const cards = pokemonList
 		.map((pokemon) => pokemonCardTemplate(pokemon))
 		.join("");
-	const statusMarkup = renderStatus({ isLoading, errorMessage });
-	const shouldShowGrid = cards.length > 0;
+	const skeletons = Array.from({ length: 12 }, () =>
+		pokemonCardSkeletonTemplate(),
+	).join("");
+	const hasResults = cards.length > 0;
+	const isEmpty = !isLoading && !errorMessage && !hasResults;
+	const statusMarkup = renderStatus({ isLoading, errorMessage, isEmpty });
+	const shouldShowGrid = isLoading || hasResults;
+	const gridContent = isLoading ? skeletons : cards;
 
 	root.innerHTML = `
     <div class="min-h-screen bg-zinc-100 text-slate-700">
@@ -73,13 +80,13 @@ export function renderHomeLayout(
 					shouldShowGrid
 						? `
           <section class="mt-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6" aria-label="Lista de Pokémon">
-            ${cards}
+            ${gridContent}
           </section>
         `
 						: ""
 				}
 
-        ${paginationTemplate()}
+        ${hasResults ? paginationTemplate() : ""}
       </main>
     </div>
   `;
