@@ -1,8 +1,11 @@
-import "./style.css"
+import "./style.css";
+import { MOCK_POKEMON } from "./data/mock-pokemon.js";
+import { renderHomeLayout } from "./render/render-home-layout.js";
 
-document.querySelector("#app").innerHTML = `
-  <main class="mx-auto mt-16 max-w-xl px-6 text-center">
-    <h1 class="text-3xl font-bold underline">Hello World</h1>
-    <p class="mt-4 text-slate-600">Pokedex project starting point</p>
-  </main>
-`
+const appRoot = document.querySelector("#app");
+
+if (!appRoot) {
+	throw new Error("App root not found");
+}
+
+renderHomeLayout(appRoot, MOCK_POKEMON);
