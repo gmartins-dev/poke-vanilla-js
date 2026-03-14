@@ -22,3 +22,5 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+docs/CODEX_SPRINT_PROMPTS_POKEDEX.md
