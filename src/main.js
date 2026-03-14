@@ -1,7 +1,16 @@
 import "./style.css";
+import { bindSearchEvents } from "./events.js";
 import { renderHomeLayout } from "./render/render-home-layout.js";
-import { getFirstGenerationPokemon } from "./services/pokemon-service.js";
-import { setAllPokemon, state } from "./state.js";
+import {
+	filterPokemonByName,
+	getFirstGenerationPokemon,
+} from "./services/pokemon-service.js";
+import {
+	setAllPokemon,
+	setFilteredPokemon,
+	setSearchTerm,
+	state,
+} from "./state.js";
 import { ApiError } from "./utils/request.js";
 
 const appRoot = document.querySelector("#app");
@@ -30,17 +39,37 @@ function getErrorMessage(error) {
 	return "Não foi possível carregar os pokémons. Tente novamente.";
 }
 
+function renderApp({ isLoading = false, errorMessage = "" } = {}) {
+	renderHomeLayout(appRoot, state.filteredPokemon, {
+		isLoading,
+		errorMessage,
+		searchTerm: state.searchTerm,
+	});
+
+	if (!isLoading && !errorMessage) {
+		bindSearchEvents(appRoot, {
+			initialValue: state.searchTerm,
+			debounceMs: 250,
+			onSearch: (rawValue) => {
+				setSearchTerm(rawValue);
+				const filteredPokemon = filterPokemonByName(state.allPokemon, rawValue);
+				setFilteredPokemon(filteredPokemon);
+				renderApp();
+			},
+		});
+	}
+}
+
 async function bootstrap() {
-	renderHomeLayout(appRoot, [], { isLoading: true });
+	setFilteredPokemon([]);
+	renderApp({ isLoading: true });
 
 	try {
 		const pokemonList = await getFirstGenerationPokemon();
 		setAllPokemon(pokemonList);
-		renderHomeLayout(appRoot, state.filteredPokemon);
+		renderApp();
 	} catch (error) {
-		renderHomeLayout(appRoot, [], {
-			errorMessage: getErrorMessage(error),
-		});
+		renderApp({ errorMessage: getErrorMessage(error) });
 	}
 }
 

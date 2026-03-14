@@ -45,3 +45,15 @@ export async function getFirstGenerationPokemon() {
 		getPokemonDetailsCached(pokemon.name),
 	);
 }
+
+export function filterPokemonByName(pokemonList, searchTerm) {
+	const normalizedTerm = searchTerm.trim().toLowerCase();
+
+	if (!normalizedTerm) {
+		return pokemonList;
+	}
+
+	return pokemonList.filter((pokemon) =>
+		pokemon.name.toLowerCase().includes(normalizedTerm),
+	);
+}

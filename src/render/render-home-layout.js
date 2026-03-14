@@ -2,6 +2,10 @@ import { pokemonCardTemplate } from "../components/pokemon-card.js";
 import { pokemonCardSkeletonTemplate } from "../components/pokemon-card-skeleton.js";
 import { renderStatus } from "./render-status.js";
 
+function escapeAttribute(value) {
+	return value.replaceAll("&", "&amp;").replaceAll('"', "&quot;");
+}
+
 function logoTemplate() {
 	return `
     <a href="#" class="inline-flex items-center" aria-label="Página inicial da Pokédex">
@@ -12,12 +16,16 @@ function logoTemplate() {
   `;
 }
 
-function searchTemplate() {
+function searchTemplate(searchTerm = "") {
+	const safeValue = escapeAttribute(searchTerm);
+
 	return `
     <label class="relative mx-auto block w-full max-w-[430px]">
       <span class="sr-only">Buscar Pokémon</span>
       <input
         type="text"
+        data-role="pokemon-search"
+        value="${safeValue}"
         placeholder="Faça uma busca pelo nome do pokémon"
         class="h-11 w-full rounded-full bg-slate-100 px-6 pr-12 text-sm text-slate-600 outline-none ring-1 ring-transparent placeholder:text-slate-500 focus:ring-slate-300"
       />
@@ -46,7 +54,7 @@ function paginationTemplate() {
 export function renderHomeLayout(
 	root,
 	pokemonList,
-	{ isLoading = false, errorMessage = "" } = {},
+	{ isLoading = false, errorMessage = "", searchTerm = "" } = {},
 ) {
 	const cards = pokemonList
 		.map((pokemon) => pokemonCardTemplate(pokemon))
@@ -73,7 +81,7 @@ export function renderHomeLayout(
       </header>
 
       <main class="mx-auto max-w-[1280px] px-4 py-8 sm:px-6 md:px-8">
-        ${searchTemplate()}
+        ${searchTemplate(searchTerm)}
 
         ${statusMarkup}
         ${

@@ -16,3 +16,16 @@ export function setAllPokemon(pokemonList) {
 		Math.ceil(pokemonList.length / state.pageSize),
 	);
 }
+
+export function setSearchTerm(value) {
+	state.searchTerm = value;
+}
+
+export function setFilteredPokemon(pokemonList) {
+	state.filteredPokemon = pokemonList;
+	state.currentPage = 1;
+	state.totalPages = Math.max(
+		1,
+		Math.ceil(pokemonList.length / state.pageSize),
+	);
+}
