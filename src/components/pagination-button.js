@@ -1,5 +1,5 @@
 function getSharedClasses() {
-	return "inline-flex items-center justify-center rounded-md px-1 py-1 text-[13px] font-medium focus-visible:ring-2 focus-visible:ring-[#d9deef]";
+	return "inline-flex cursor-pointer items-center justify-center rounded-md px-1 py-1 text-[13px] font-medium focus-visible:ring-2 focus-visible:ring-[#d9deef]";
 }
 
 export function paginationPageButtonTemplate(page, currentPage) {
@@ -38,7 +38,7 @@ export function paginationStepButtonTemplate({
       type="button"
       data-role="pagination-${direction}"
       data-page="${page}"
-      class="${getSharedClasses()} gap-1 ${textColor}"
+      class="${getSharedClasses()} gap-1 ${textColor} ${disabled ? "cursor-default" : ""}"
       ${disabled ? "disabled" : ""}
       aria-label="${isPrevious ? "Página anterior" : "Próxima página"}"
     >
