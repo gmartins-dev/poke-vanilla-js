@@ -25,6 +25,8 @@ function searchTemplate(searchTerm = "") {
       <span class="sr-only">Buscar Pokémon</span>
       <input
         type="text"
+        id="pokemon-search"
+        name="pokemon-search"
         data-role="pokemon-search"
         value="${safeValue}"
         placeholder="Faça uma busca pelo nome do pokémon"

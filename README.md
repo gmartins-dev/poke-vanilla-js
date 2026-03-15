@@ -33,62 +33,73 @@ A aplicação consome dados da **PokéAPI** e permite **listagem, busca e pagina
 - Tailwind CSS v4
 
 ### Qualidade de Código
-
-- Biome (lint + formatter)
+- Biome (lint/format)
 
 ### Fonte de Dados
+- PokéAPI (fonte de dados)
 
-- PokéAPI
+## Funcionalidades
 
----
+- Listagem de 151 pokémons (1ª geração) com imagem, nome, número e tipo
+- Busca client-side por nome (case-insensitive)
+- Debounce de busca em 250ms
+- Paginação client-side (anterior, próximo e páginas numéricas)
+- Integração entre busca + paginação sem reload
+- Cache em `Map` para índice e detalhes de pokémons
+- Deduplicação de requests em voo para evitar chamadas duplicadas
 
-# Funcionalidades
+## Estados de UX
 
-## Listagem de Pokémon
+- Loading: mensagem + skeleton cards
+- Empty: mensagem quando não há resultados
+- Error: mensagens específicas para erro de rede, HTTP e parsing
 
-Exibição em grid de cards contendo:
+## Responsividade do grid
 
-- imagem
-- nome
-- número
-- tipo
+- Mobile: 2 colunas
+- Tablet: 3-4 colunas
+- Desktop: 6 colunas
 
----
+## Arquitetura
 
-## Busca
+Estrutura principal em `src/`:
 
-Busca por nome com:
+- `api.js`: endpoints da PokéAPI
+- `state.js`: estado global da aplicação
+- `services/pokemon-service.js`: regras de negócio, cache e paginação
+- `render/`: renderização de layout, status e paginação
+- `components/`: card de pokémon e skeleton
+- `events.js`: binding de eventos de busca e paginação
+- `utils/`: utilitários (`request`, `debounce`)
 
-- filtro client-side
-- debounce
-- sem reload da página
+## Como rodar
 
----
+1. Instalar dependências:
 
-## Paginação
-
-- paginação client-side
-- navegação anterior / próxima
-- integração com busca
-
----
-
-# Executando o Projeto
-
-Instalar dependências
-
+```bash
 pnpm install
+```
 
-Rodar ambiente de desenvolvimento
+2. Rodar em desenvolvimento:
 
+```bash
 pnpm dev
+```
 
-Abrir
+3. Build de produção:
 
-http://localhost:5173
+```bash
+pnpm build
+```
 
----
+## Scripts disponíveis
 
-# Autor
+- `pnpm dev`
+- `pnpm build`
+- `pnpm preview`
 
-Guilherme Martins
+## Qualidade de código
+
+```bash
+pnpm exec biome check src
+```
