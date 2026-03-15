@@ -1,7 +1,7 @@
 function pageButtonTemplate(page, currentPage) {
 	const isActive = page === currentPage;
 	const sharedClasses =
-		"inline-flex h-6 min-w-6 items-center justify-center rounded-[6px] px-1.5 text-[13px] font-medium";
+		"inline-flex h-6 min-w-6 items-center justify-center rounded-[6px] px-1.5 text-[13px] font-medium focus-visible:ring-2 focus-visible:ring-[#d9deef]";
 
 	return `
     <button
@@ -34,12 +34,13 @@ export function renderPagination({ currentPage, totalPages }) {
 	const isNextDisabled = currentPage >= totalPages;
 
 	return `
-    <nav class="mt-14 flex flex-wrap items-center justify-center gap-3 text-[13px] font-medium" aria-label="Paginação">
+    <nav class="mt-8 flex flex-wrap items-center justify-center gap-2.5 text-[13px] font-medium sm:mt-10 sm:gap-3 xl:mt-14" aria-label="Paginação">
       <button
         type="button"
         data-role="pagination-previous"
-        class="inline-flex items-center gap-1 ${isPreviousDisabled ? "text-[#c9cdd7]" : "text-[#656f83]"}"
+        class="inline-flex items-center gap-1 rounded-md px-1 py-1 focus-visible:ring-2 focus-visible:ring-[#d9deef] ${isPreviousDisabled ? "text-[#c9cdd7]" : "text-[#656f83]"}"
         ${isPreviousDisabled ? "disabled" : ""}
+        aria-label="Página anterior"
       >
         <span aria-hidden="true">←</span>
         <span>Anterior</span>
@@ -48,8 +49,9 @@ export function renderPagination({ currentPage, totalPages }) {
       <button
         type="button"
         data-role="pagination-next"
-        class="inline-flex items-center gap-1 ${isNextDisabled ? "text-[#c9cdd7]" : "text-[#31363f]"}"
+        class="inline-flex items-center gap-1 rounded-md px-1 py-1 focus-visible:ring-2 focus-visible:ring-[#d9deef] ${isNextDisabled ? "text-[#c9cdd7]" : "text-[#31363f]"}"
         ${isNextDisabled ? "disabled" : ""}
+        aria-label="Próxima página"
       >
         <span>Próximo</span>
         <span aria-hidden="true">→</span>

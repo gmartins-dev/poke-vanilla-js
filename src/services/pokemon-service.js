@@ -28,6 +28,27 @@ const TYPE_LABELS = {
 	water: "Água",
 };
 
+const TYPE_ORDER = [
+	"all",
+	"bug",
+	"dragon",
+	"electric",
+	"fairy",
+	"fighting",
+	"fire",
+	"flying",
+	"ghost",
+	"grass",
+	"ground",
+	"ice",
+	"normal",
+	"poison",
+	"psychic",
+	"rock",
+	"steel",
+	"water",
+];
+
 function formatPokemonNumber(id) {
 	return `#${String(id).padStart(3, "0")}`;
 }
@@ -142,6 +163,37 @@ export function filterPokemonByName(pokemonList, searchTerm) {
 			.toLowerCase()
 			.includes(normalizedTerm),
 	);
+}
+
+export function filterPokemonByType(pokemonList, selectedType) {
+	if (!selectedType || selectedType === "all") {
+		return pokemonList;
+	}
+
+	return pokemonList.filter((pokemon) => pokemon.rawType === selectedType);
+}
+
+export function applyPokemonFilters(
+	pokemonList,
+	{ searchTerm = "", selectedType = "all" } = {},
+) {
+	return filterPokemonByType(
+		filterPokemonByName(pokemonList, searchTerm),
+		selectedType,
+	);
+}
+
+export function getPokemonTypeOptions(pokemonList) {
+	const availableTypes = new Set(
+		pokemonList.map((pokemon) => pokemon.rawType).filter(Boolean),
+	);
+
+	return TYPE_ORDER.filter((type) =>
+		type === "all" ? true : availableTypes.has(type),
+	).map((type) => ({
+		value: type,
+		label: type === "all" ? "Todos os tipos" : (TYPE_LABELS[type] ?? type),
+	}));
 }
 
 export function getPaginatedSlice(pokemonList, currentPage, pageSize) {

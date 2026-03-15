@@ -18,6 +18,22 @@ export function bindSearchEvents(
 	});
 }
 
+export function bindFilterEvents(
+	root,
+	{ initialValue = "all", onFilterChange },
+) {
+	const typeSelect = root.querySelector('[data-role="pokemon-type-filter"]');
+
+	if (!typeSelect) {
+		return;
+	}
+
+	typeSelect.value = initialValue;
+	typeSelect.addEventListener("change", (event) => {
+		onFilterChange(event.target.value);
+	});
+}
+
 export function bindPaginationEvents(
 	root,
 	{ currentPage, totalPages, onPageChange },

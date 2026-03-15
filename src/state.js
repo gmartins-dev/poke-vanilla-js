@@ -5,6 +5,7 @@ export const state = {
 	pokemonDetailsCache: new Map(),
 	pokemonDetailsRequests: new Map(),
 	searchTerm: "",
+	selectedType: "all",
 	currentPage: 1,
 	pageSize: 18,
 	totalPages: 1,
@@ -23,6 +24,10 @@ export function setSearchTerm(value) {
 	state.searchTerm = value;
 }
 
+export function setSelectedType(value) {
+	state.selectedType = value;
+}
+
 export function setFilteredPokemon(pokemonList) {
 	state.filteredPokemon = pokemonList;
 	state.currentPage = 1;
@@ -34,4 +39,13 @@ export function setFilteredPokemon(pokemonList) {
 
 export function setCurrentPage(page) {
 	state.currentPage = Math.min(Math.max(1, page), state.totalPages);
+}
+
+export function setPageSize(pageSize) {
+	state.pageSize = pageSize;
+	state.totalPages = Math.max(
+		1,
+		Math.ceil(state.filteredPokemon.length / state.pageSize),
+	);
+	state.currentPage = Math.min(state.currentPage, state.totalPages);
 }

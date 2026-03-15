@@ -22,20 +22,20 @@ export function pokemonCardTemplate(pokemon) {
 	const typeClass = TYPE_TEXT_STYLES[pokemon.rawType] ?? "text-emerald-500";
 
 	return `
-    <article class="flex min-h-[198px] flex-col rounded-[8px] bg-[#f7f8ff] px-4 py-3 sm:min-h-[208px]">
+    <article class="flex min-h-[152px] flex-col rounded-[8px] bg-[#f7f8ff] px-3 py-2.5 sm:min-h-[170px] sm:px-4 sm:py-3 xl:min-h-[188px]" aria-label="${pokemon.name}, tipo ${pokemon.type}, número ${pokemon.number}">
       <div class="flex items-center justify-between text-[11px] font-semibold leading-none">
         <span class="${typeClass}">${pokemon.type}</span>
         <span class="text-[#4e5872]">${pokemon.number}</span>
       </div>
-      <div class="flex flex-1 items-center justify-center px-2 py-4 sm:py-5">
+      <div class="flex flex-1 items-center justify-center px-1 py-2.5 sm:px-2 sm:py-4 xl:py-5">
         <img
-          class="block h-[92px] w-[92px] object-contain sm:h-[100px] sm:w-[100px]"
+          class="block h-[62px] w-[62px] object-contain sm:h-[78px] sm:w-[78px] xl:h-[92px] xl:w-[92px]"
           src="${pokemon.image}"
           alt="${pokemon.name}"
           loading="lazy"
         />
       </div>
-      <h3 class="text-center text-[12px] font-semibold text-[#2d3652] sm:text-[13px]">${pokemon.name}</h3>
+      <h3 class="text-center text-[11px] font-semibold text-[#2d3652] sm:text-[12px] xl:text-[13px]">${pokemon.name}</h3>
     </article>
   `;
 }

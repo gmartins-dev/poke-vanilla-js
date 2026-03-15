@@ -1,105 +1,82 @@
+# Pokédex Vanilla JS
 
-# Pokédex Vanilla Js
+Implementação do desafio técnico front-end com foco em JavaScript vanilla, arquitetura modular e fidelidade visual ao Figma.
 
-Implementação do desafio técnico front-end.
+## Objetivo
 
-Esta aplicação consiste em uma **Pokédex interativa** baseada no design fornecido no Figma.
-O objetivo do projeto é demonstrar boas práticas de engenharia front-end utilizando uma stack
-moderna, simples e bem organizada.
+Entregar uma Pokédex interativa com:
 
-## Objetivos do projeto
+- listagem dos 151 pokémons da 1ª geração
+- busca sem recarregar a página
+- filtro por tipo
+- paginação client-side
+- responsividade para mobile, tablet e desktop
 
-- código organizado e legível
-- arquitetura modular mesmo sem frameworks
-- integração eficiente com API
-- experiência de usuário fluida
-- layout responsivo
-- boas práticas de qualidade de código
+## Justificativa da Stack
 
-A aplicação consome dados da **PokéAPI** e permite **listagem, busca e paginação de Pokémon**.
-
----
-
-# Stack Utilizada
-
-### Core
-
-- HTML5
-- JavaScript (ES Modules)
-- Vite v7
-
-### Estilização
-
-- Tailwind CSS v4
-
-### Qualidade de Código
-- Biome (lint/format)
-
-### Fonte de Dados
-- PokéAPI (fonte de dados)
+- `Vanilla JavaScript (ES Modules)`: atende diretamente ao requisito principal do teste e evidencia organização sem depender de framework.
+- `Vite`: reduz setup manual, melhora a experiência de desenvolvimento e mantém o projeto leve.
+- `Tailwind CSS v4`: acelera a aproximação com o layout do Figma sem introduzir uma camada de abstração pesada.
+- `Biome`: garante padronização de lint e formatação com configuração mínima.
 
 ## Funcionalidades
 
-- Listagem de 151 pokémons (1ª geração) com imagem, nome, número e tipo
-- Busca client-side por nome (case-insensitive)
-- Debounce de busca em 250ms
-- Paginação client-side (anterior, próximo e páginas numéricas)
-- Integração entre busca + paginação sem reload
-- Cache em `Map` para índice e detalhes de pokémons
-- Deduplicação de requests em voo para evitar chamadas duplicadas
-
-## Estados de UX
-
-- Loading: mensagem + skeleton cards
-- Empty: mensagem quando não há resultados
-- Error: mensagens específicas para erro de rede, HTTP e parsing
-
-## Responsividade do grid
-
-- Mobile: 2 colunas
-- Tablet: 3-4 colunas
-- Desktop: 6 colunas
+- listagem dos 151 pokémons usando PokéAPI
+- busca client-side por nome
+- filtro por tipo
+- paginação sem reload
+- sincronização de `search`, `type` e `page` na URL
+- cache em `Map` para índice e detalhes dos pokémons
+- deduplicação de requests em voo
+- layout responsivo com page size adaptado à altura da viewport
 
 ## Arquitetura
 
-Estrutura principal em `src/`:
+Fluxo principal:
 
-- `api.js`: endpoints da PokéAPI
-- `state.js`: estado global da aplicação
-- `services/pokemon-service.js`: regras de negócio, cache e paginação
-- `render/`: renderização de layout, status e paginação
-- `components/`: card de pokémon e skeleton
-- `events.js`: binding de eventos de busca e paginação
-- `utils/`: utilitários (`request`, `debounce`)
+`api -> services -> state -> render -> events`
+
+Responsabilidades:
+
+- `src/api.js`: comunicação bruta com a PokéAPI
+- `src/services/pokemon-service.js`: transformação, filtros, paginação e opções derivadas
+- `src/state.js`: estado centralizado da aplicação
+- `src/render/`: renderização de layout, estados e paginação
+- `src/components/`: partes reutilizáveis da UI
+- `src/events.js`: binding dos eventos de busca, filtro e paginação
+- `src/utils/`: debounce, request, URL state e responsividade
+
+## UX e Acessibilidade
+
+- busca, filtro e paginação funcionam sem refresh
+- resumo de resultados com `aria-live`
+- estados de loading, erro e vazio
+- foco visível em busca, filtro e paginação
+- paginação adaptada para telas menores
 
 ## Como rodar
 
-1. Instalar dependências:
-
 ```bash
 pnpm install
-```
-
-2. Rodar em desenvolvimento:
-
-```bash
 pnpm dev
 ```
 
-3. Build de produção:
+## Scripts
 
 ```bash
+pnpm dev
 pnpm build
+pnpm preview
+pnpm test
+pnpm exec biome lint src
 ```
 
-## Scripts disponíveis
+## Testes
 
-- `pnpm dev`
-- `pnpm build`
-- `pnpm preview`
+Os testes usam o runner nativo do Node para validar:
 
-## Qualidade de código
-
-```bash
-pnpm exec biome check src
-```
+- filtros combinados
+- paginação
+- geração de opções de tipo
+- regra de responsividade
+- leitura/escrita do estado da URL
