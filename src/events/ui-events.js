@@ -71,7 +71,7 @@ export function bindUiEvents({
 	onTypeChange,
 	onPageChange,
 	onPopState,
-	searchDebounceMs = 250,
+	searchDebounceMs = 500,
 }) {
 	const debouncedSearch = debounce(onSearchChange, searchDebounceMs);
 

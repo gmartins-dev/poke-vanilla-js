@@ -18,6 +18,7 @@ import {
 	state,
 } from "./state/state.js";
 
+const SEARCH_DEBOUNCE_MS = 500;
 const appRoot = document.querySelector("#app");
 
 if (!appRoot) {
@@ -58,6 +59,7 @@ function renderApp() {
 
 bindUiEvents({
 	root: appRoot,
+	searchDebounceMs: SEARCH_DEBOUNCE_MS,
 	onSearchChange: (value) => {
 		setSearchTerm(value);
 		syncUrlState();
