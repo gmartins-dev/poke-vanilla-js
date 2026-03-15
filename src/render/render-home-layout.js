@@ -1,5 +1,6 @@
 import { pokemonCardTemplate } from "../components/pokemon-card.js";
 import { pokemonCardSkeletonTemplate } from "../components/pokemon-card-skeleton.js";
+import { renderPagination } from "./render-pagination.js";
 import { renderStatus } from "./render-status.js";
 
 function escapeAttribute(value) {
@@ -39,22 +40,16 @@ function searchTemplate(searchTerm = "") {
   `;
 }
 
-function paginationTemplate() {
-	return `
-    <nav class="mt-12 flex items-center justify-center gap-3 text-sm" aria-label="Paginação">
-      <button type="button" class="text-slate-400" aria-disabled="true">← Anterior</button>
-      <button type="button" class="h-6 w-6 rounded-md bg-slate-800 text-xs font-semibold text-white">1</button>
-      <button type="button" class="text-slate-500">2</button>
-      <button type="button" class="text-slate-500">3</button>
-      <button type="button" class="text-slate-700">Próximo →</button>
-    </nav>
-  `;
-}
-
 export function renderHomeLayout(
 	root,
 	pokemonList,
-	{ isLoading = false, errorMessage = "", searchTerm = "" } = {},
+	{
+		isLoading = false,
+		errorMessage = "",
+		searchTerm = "",
+		currentPage = 1,
+		totalPages = 1,
+	} = {},
 ) {
 	const cards = pokemonList
 		.map((pokemon) => pokemonCardTemplate(pokemon))
@@ -94,7 +89,7 @@ export function renderHomeLayout(
 						: ""
 				}
 
-        ${hasResults ? paginationTemplate() : ""}
+        ${hasResults ? renderPagination({ currentPage, totalPages }) : ""}
       </main>
     </div>
   `;

@@ -17,3 +17,36 @@ export function bindSearchEvents(
 		debouncedSearch(event.target.value);
 	});
 }
+
+export function bindPaginationEvents(
+	root,
+	{ currentPage, totalPages, onPageChange },
+) {
+	const previousButton = root.querySelector(
+		'[data-role="pagination-previous"]',
+	);
+	const nextButton = root.querySelector('[data-role="pagination-next"]');
+	const pageButtons = root.querySelectorAll('[data-role="pagination-page"]');
+
+	if (previousButton) {
+		previousButton.addEventListener("click", () => {
+			onPageChange(Math.max(1, currentPage - 1));
+		});
+	}
+
+	if (nextButton) {
+		nextButton.addEventListener("click", () => {
+			onPageChange(Math.min(totalPages, currentPage + 1));
+		});
+	}
+
+	for (const button of pageButtons) {
+		button.addEventListener("click", () => {
+			const page = Number(button.dataset.page);
+
+			if (!Number.isNaN(page)) {
+				onPageChange(page);
+			}
+		});
+	}
+}

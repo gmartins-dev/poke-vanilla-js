@@ -14,15 +14,41 @@ function formatPokemonDetails(details) {
 }
 
 async function getPokemonDetailsCached(name) {
-	if (state.pokemonDetailsCache.has(name)) {
-		return state.pokemonDetailsCache.get(name);
+	const normalizedName = name.toLowerCase();
+
+	if (state.pokemonDetailsCache.has(normalizedName)) {
+		return state.pokemonDetailsCache.get(normalizedName);
 	}
 
-	const details = await fetchPokemonDetails(name);
-	const formatted = formatPokemonDetails(details);
-	state.pokemonDetailsCache.set(name, formatted);
+	if (state.pokemonDetailsRequests.has(normalizedName)) {
+		return state.pokemonDetailsRequests.get(normalizedName);
+	}
 
-	return formatted;
+	const detailsRequest = fetchPokemonDetails(normalizedName)
+		.then((details) => {
+			const formatted = formatPokemonDetails(details);
+			state.pokemonDetailsCache.set(normalizedName, formatted);
+			return formatted;
+		})
+		.finally(() => {
+			state.pokemonDetailsRequests.delete(normalizedName);
+		});
+
+	state.pokemonDetailsRequests.set(normalizedName, detailsRequest);
+
+	return detailsRequest;
+}
+
+async function getPokemonIndexCached(limit) {
+	if (state.pokemonIndexCache.has(limit)) {
+		return state.pokemonIndexCache.get(limit);
+	}
+
+	const response = await fetchPokemonIndex(limit);
+	const pokemonIndex = response.results ?? [];
+	state.pokemonIndexCache.set(limit, pokemonIndex);
+
+	return pokemonIndex;
 }
 
 async function resolveInBatches(items, batchSize, mapper) {
@@ -38,10 +64,16 @@ async function resolveInBatches(items, batchSize, mapper) {
 }
 
 export async function getFirstGenerationPokemon() {
-	const indexResponse = await fetchPokemonIndex(151);
-	const pokemonIndex = indexResponse.results ?? [];
+	if (state.allPokemon.length >= 151) {
+		return state.allPokemon;
+	}
 
-	return resolveInBatches(pokemonIndex, 20, (pokemon) =>
+	const pokemonIndex = await getPokemonIndexCached(151);
+	const uniquePokemonIndex = Array.from(
+		new Map(pokemonIndex.map((pokemon) => [pokemon.name, pokemon])).values(),
+	);
+
+	return resolveInBatches(uniquePokemonIndex, 20, (pokemon) =>
 		getPokemonDetailsCached(pokemon.name),
 	);
 }
@@ -56,4 +88,17 @@ export function filterPokemonByName(pokemonList, searchTerm) {
 	return pokemonList.filter((pokemon) =>
 		pokemon.name.toLowerCase().includes(normalizedTerm),
 	);
+}
+
+export function getPaginatedSlice(pokemonList, currentPage, pageSize) {
+	const totalPages = Math.max(1, Math.ceil(pokemonList.length / pageSize));
+	const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+	const startIndex = (safeCurrentPage - 1) * pageSize;
+	const endIndex = startIndex + pageSize;
+
+	return {
+		items: pokemonList.slice(startIndex, endIndex),
+		currentPage: safeCurrentPage,
+		totalPages,
+	};
 }

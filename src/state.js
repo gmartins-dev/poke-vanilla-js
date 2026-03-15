@@ -1,7 +1,9 @@
 export const state = {
 	allPokemon: [],
 	filteredPokemon: [],
+	pokemonIndexCache: new Map(),
 	pokemonDetailsCache: new Map(),
+	pokemonDetailsRequests: new Map(),
 	searchTerm: "",
 	currentPage: 1,
 	pageSize: 12,
@@ -28,4 +30,8 @@ export function setFilteredPokemon(pokemonList) {
 		1,
 		Math.ceil(pokemonList.length / state.pageSize),
 	);
+}
+
+export function setCurrentPage(page) {
+	state.currentPage = Math.min(Math.max(1, page), state.totalPages);
 }

@@ -1,12 +1,14 @@
 import "./style.css";
-import { bindSearchEvents } from "./events.js";
+import { bindPaginationEvents, bindSearchEvents } from "./events.js";
 import { renderHomeLayout } from "./render/render-home-layout.js";
 import {
 	filterPokemonByName,
 	getFirstGenerationPokemon,
+	getPaginatedSlice,
 } from "./services/pokemon-service.js";
 import {
 	setAllPokemon,
+	setCurrentPage,
 	setFilteredPokemon,
 	setSearchTerm,
 	state,
@@ -40,10 +42,19 @@ function getErrorMessage(error) {
 }
 
 function renderApp({ isLoading = false, errorMessage = "" } = {}) {
-	renderHomeLayout(appRoot, state.filteredPokemon, {
+	const paginated = getPaginatedSlice(
+		state.filteredPokemon,
+		state.currentPage,
+		state.pageSize,
+	);
+	setCurrentPage(paginated.currentPage);
+
+	renderHomeLayout(appRoot, paginated.items, {
 		isLoading,
 		errorMessage,
 		searchTerm: state.searchTerm,
+		currentPage: state.currentPage,
+		totalPages: paginated.totalPages,
 	});
 
 	if (!isLoading && !errorMessage) {
@@ -54,6 +65,15 @@ function renderApp({ isLoading = false, errorMessage = "" } = {}) {
 				setSearchTerm(rawValue);
 				const filteredPokemon = filterPokemonByName(state.allPokemon, rawValue);
 				setFilteredPokemon(filteredPokemon);
+				renderApp();
+			},
+		});
+
+		bindPaginationEvents(appRoot, {
+			currentPage: state.currentPage,
+			totalPages: paginated.totalPages,
+			onPageChange: (page) => {
+				setCurrentPage(page);
 				renderApp();
 			},
 		});
