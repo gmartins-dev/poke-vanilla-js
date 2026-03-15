@@ -34,7 +34,7 @@ export function renderPagination({ currentPage, totalPages }) {
 	const isNextDisabled = currentPage >= totalPages;
 
 	return `
-    <nav class="mt-8 flex flex-wrap items-center justify-center gap-2.5 text-[13px] font-medium sm:mt-10 sm:gap-3 xl:mt-14" aria-label="Paginação">
+    <nav class="mt-4 flex flex-wrap items-center justify-center gap-2.5 text-[13px] font-medium sm:mt-10 sm:gap-3" aria-label="Paginação">
       <button
         type="button"
         data-role="pagination-previous"
