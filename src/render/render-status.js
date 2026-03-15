@@ -1,7 +1,7 @@
 export function renderStatus({ isLoading, errorMessage, isEmpty }) {
 	if (isLoading) {
 		return `
-      <div class="mt-6 rounded-md border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-600">
+      <div role="status" aria-live="polite" class="mt-6 rounded-md border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-600">
         Carregando pokémons...
       </div>
     `;
@@ -9,7 +9,7 @@ export function renderStatus({ isLoading, errorMessage, isEmpty }) {
 
 	if (errorMessage) {
 		return `
-      <div class="mt-6 rounded-md border border-red-200 bg-red-50 px-4 py-6 text-center text-sm text-red-700">
+      <div role="alert" aria-live="assertive" class="mt-6 rounded-md border border-red-200 bg-red-50 px-4 py-6 text-center text-sm text-red-700">
         ${errorMessage}
       </div>
     `;
@@ -17,7 +17,7 @@ export function renderStatus({ isLoading, errorMessage, isEmpty }) {
 
 	if (isEmpty) {
 		return `
-      <div class="mt-6 rounded-md border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-600">
+      <div role="status" aria-live="polite" class="mt-6 rounded-md border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-600">
         Nenhum pokémon encontrado.
       </div>
     `;
