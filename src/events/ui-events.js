@@ -72,6 +72,9 @@ export function bindUiEvents({
 	onSearchChange,
 	onTypeChange,
 	onPageChange,
+	onPokemonCardOpen,
+	onPokemonDetailsClose,
+	onPokemonDetailsRetry,
 	onPopState,
 	searchDebounceMs = 500,
 }) {
@@ -103,14 +106,75 @@ export function bindUiEvents({
 			'[data-role="pagination-page"], [data-role="pagination-previous"], [data-role="pagination-next"]',
 		);
 
-		if (!button || button.disabled) {
+		if (button && !button.disabled) {
+			const page = Number(button.dataset.page);
+
+			if (!Number.isNaN(page)) {
+				onPageChange(page);
+			}
+
 			return;
 		}
 
-		const page = Number(button.dataset.page);
+		const closeButton = event.target.closest(
+			'[data-role="pokemon-modal-close"]',
+		);
 
-		if (!Number.isNaN(page)) {
-			onPageChange(page);
+		if (closeButton) {
+			onPokemonDetailsClose();
+			return;
+		}
+
+		const retryButton = event.target.closest(
+			'[data-role="pokemon-modal-retry"]',
+		);
+
+		if (retryButton) {
+			onPokemonDetailsRetry(
+				retryButton.dataset.pokemonName ??
+					retryButton
+						.closest('[data-role="pokemon-modal-dialog"]')
+						?.getAttribute("data-pokemon-name") ??
+					"",
+			);
+			return;
+		}
+
+		const overlay = event.target.closest('[data-role="pokemon-modal-overlay"]');
+		const dialog = event.target.closest('[data-role="pokemon-modal-dialog"]');
+
+		if (overlay && !dialog) {
+			onPokemonDetailsClose();
+			return;
+		}
+
+		const card = event.target.closest('[data-role="pokemon-card"]');
+
+		if (!card) {
+			return;
+		}
+
+		onPokemonCardOpen(card.dataset.pokemonName ?? "");
+	};
+
+	const handleRootKeyDown = (event) => {
+		if (event.key !== "Enter" && event.key !== " ") {
+			return;
+		}
+
+		const card = event.target.closest?.('[data-role="pokemon-card"]');
+
+		if (!card) {
+			return;
+		}
+
+		event.preventDefault();
+		onPokemonCardOpen(card.dataset.pokemonName ?? "");
+	};
+
+	const handleWindowKeyDown = (event) => {
+		if (event.key === "Escape") {
+			onPokemonDetailsClose();
 		}
 	};
 
@@ -121,12 +185,16 @@ export function bindUiEvents({
 	root.addEventListener("input", handleInput);
 	root.addEventListener("change", handleChange);
 	root.addEventListener("click", handleClick);
+	root.addEventListener("keydown", handleRootKeyDown);
+	window.addEventListener("keydown", handleWindowKeyDown);
 	window.addEventListener("popstate", handlePopState);
 
 	return () => {
 		root.removeEventListener("input", handleInput);
 		root.removeEventListener("change", handleChange);
 		root.removeEventListener("click", handleClick);
+		root.removeEventListener("keydown", handleRootKeyDown);
+		window.removeEventListener("keydown", handleWindowKeyDown);
 		window.removeEventListener("popstate", handlePopState);
 	};
 }

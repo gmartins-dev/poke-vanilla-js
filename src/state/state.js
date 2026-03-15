@@ -18,6 +18,9 @@ function createInitialState() {
 		currentPage: 1,
 		pageSize: 18,
 		totalPages: 1,
+		activePokemonName: "",
+		isPokemonDetailsLoading: false,
+		pokemonDetailsErrorMessage: "",
 		isLoading: false,
 		errorMessage: "",
 	};
@@ -54,6 +57,17 @@ function syncFilteredPokemon() {
 	state.visiblePokemon = pagination.items;
 	state.currentPage = pagination.currentPage;
 	state.totalPages = pagination.totalPages;
+
+	if (
+		state.activePokemonName &&
+		!state.visiblePokemon.some(
+			(pokemon) => pokemon.searchName === state.activePokemonName,
+		)
+	) {
+		// Fecha o modal quando o item deixa de existir na página atual,
+		// evitando referência visual para um card já oculto.
+		closePokemonDetailsModal();
+	}
 }
 
 function normalizeSearchTerm(value) {
@@ -68,6 +82,10 @@ function normalizePage(value) {
 	const page = Number(value);
 
 	return Number.isInteger(page) && page > 0 ? page : 1;
+}
+
+function normalizePokemonName(value) {
+	return value?.trim().toLowerCase() ?? "";
 }
 
 export function resetState() {
@@ -115,6 +133,26 @@ export function setSelectedType(value) {
 export function setCurrentPage(page) {
 	state.currentPage = normalizePage(page);
 	syncFilteredPokemon();
+}
+
+export function openPokemonDetailsModal(name) {
+	state.activePokemonName = normalizePokemonName(name);
+	state.isPokemonDetailsLoading = false;
+	state.pokemonDetailsErrorMessage = "";
+}
+
+export function closePokemonDetailsModal() {
+	state.activePokemonName = "";
+	state.isPokemonDetailsLoading = false;
+	state.pokemonDetailsErrorMessage = "";
+}
+
+export function setPokemonDetailsLoading(isLoading) {
+	state.isPokemonDetailsLoading = Boolean(isLoading);
+}
+
+export function setPokemonDetailsErrorMessage(message = "") {
+	state.pokemonDetailsErrorMessage = message;
 }
 
 export function setLoading(isLoading) {

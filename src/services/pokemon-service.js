@@ -8,6 +8,16 @@ const SPECIAL_NAME_LABELS = {
 	"nidoran-f": "Nidoran♀",
 	"nidoran-m": "Nidoran♂",
 };
+const DETAIL_METRIC_FORMATTER = new Intl.NumberFormat("pt-BR", {
+	minimumFractionDigits: 1,
+	maximumFractionDigits: 1,
+});
+const DETAIL_STAT_LABELS = {
+	hp: "Vida",
+	attack: "Ataque",
+	speed: "Velocidade",
+};
+const DETAIL_STAT_ORDER = ["hp", "attack", "speed"];
 
 function formatPokemonNumber(id) {
 	return `#${String(id).padStart(3, "0")}`;
@@ -24,10 +34,50 @@ function formatPokemonName(name) {
 		.join(" ");
 }
 
+function formatPokemonMetric(value, unit) {
+	return `${DETAIL_METRIC_FORMATTER.format(value / 10)} ${unit}`;
+}
+
+function formatPokemonTypes(types = []) {
+	return [...types]
+		.sort((typeA, typeB) => typeA.slot - typeB.slot)
+		.map(({ type }) => ({
+			rawType: type.name,
+			label: getPokemonTypeLabel(type.name),
+		}));
+}
+
+function formatPokemonAbilities(abilities = []) {
+	return [...abilities]
+		.sort((abilityA, abilityB) => abilityA.slot - abilityB.slot)
+		.map(({ ability }) => formatPokemonName(ability.name));
+}
+
+function formatPokemonStats(stats = []) {
+	const statsByName = new Map(
+		stats.map((entry) => [entry.stat.name, entry.base_stat]),
+	);
+
+	return DETAIL_STAT_ORDER.map((statName) => {
+		const value = statsByName.get(statName);
+
+		if (typeof value !== "number") {
+			return null;
+		}
+
+		return {
+			key: statName,
+			label: DETAIL_STAT_LABELS[statName],
+			value,
+		};
+	}).filter(Boolean);
+}
+
 function formatPokemonDetails(details) {
 	// O service normaliza o payload bruto da PokéAPI para um formato
 	// estável que a UI consegue consumir sem conhecer a estrutura externa.
-	const rawType = details.types[0]?.type?.name ?? "normal";
+	const types = formatPokemonTypes(details.types);
+	const rawType = types[0]?.rawType ?? "normal";
 
 	return {
 		number: formatPokemonNumber(details.id),
@@ -36,14 +86,25 @@ function formatPokemonDetails(details) {
 		name: formatPokemonName(details.name),
 		searchName: details.name,
 		image:
-			details.sprites.other["official-artwork"].front_default ??
+			details.sprites.other?.["official-artwork"]?.front_default ??
 			details.sprites.front_default ??
 			"",
+		details: {
+			height: formatPokemonMetric(details.height, "m"),
+			weight: formatPokemonMetric(details.weight, "kg"),
+			types,
+			abilities: formatPokemonAbilities(details.abilities),
+			stats: formatPokemonStats(details.stats),
+		},
 	};
 }
 
+function normalizePokemonName(name) {
+	return name?.trim().toLowerCase() ?? "";
+}
+
 async function getPokemonDetailsCached(name) {
-	const normalizedName = name.toLowerCase();
+	const normalizedName = normalizePokemonName(name);
 
 	if (state.pokemonDetailsCache.has(normalizedName)) {
 		return state.pokemonDetailsCache.get(normalizedName);
@@ -111,4 +172,16 @@ export async function getFirstGenerationPokemon() {
 	return resolveInBatches(uniquePokemonIndex, 20, (pokemon) =>
 		getPokemonDetailsCached(pokemon.name),
 	);
+}
+
+export function getCachedPokemonDetails(name) {
+	const pokemon = state.pokemonDetailsCache.get(normalizePokemonName(name));
+
+	return pokemon?.details ?? null;
+}
+
+export async function getPokemonCardDetails(name) {
+	const pokemon = await getPokemonDetailsCached(name);
+
+	return pokemon.details;
 }

@@ -1,4 +1,5 @@
 import pokedexLogo from "../assets/pokedex-logo.png";
+import { pokemonDetailsModalTemplate } from "../components/pokemon-details-modal.js";
 import { pokemonCardTemplate } from "../components/pokemon-card.js";
 import { renderPagination } from "./render-pagination.js";
 import {
@@ -7,7 +8,9 @@ import {
 } from "./render-states.js";
 
 function escapeAttribute(value) {
-	return value.replaceAll("&", "&amp;").replaceAll('"', "&quot;");
+	return String(value ?? "")
+		.replaceAll("&", "&amp;")
+		.replaceAll('"', "&quot;");
 }
 
 function logoTemplate() {
@@ -78,8 +81,18 @@ function filterControlsTemplate({
 export function renderPokemonGrid(root, viewModel) {
 	// O render recebe um view model já resolvido pela camada de estado.
 	// Aqui a responsabilidade é apenas estruturar a UI.
+	const activePokemon = viewModel.activePokemonName
+		? (viewModel.allPokemon.find(
+				(pokemon) => pokemon.searchName === viewModel.activePokemonName,
+			) ?? null)
+		: null;
 	const cardsMarkup = viewModel.visiblePokemon
-		.map((pokemon) => pokemonCardTemplate(pokemon))
+		.map((pokemon) =>
+			pokemonCardTemplate({
+				pokemon,
+				isActive: viewModel.activePokemonName === pokemon.searchName,
+			}),
+		)
 		.join("");
 	const isEmpty =
 		!viewModel.isLoading &&
@@ -99,6 +112,16 @@ export function renderPokemonGrid(root, viewModel) {
 		viewModel.isLoading || viewModel.errorMessage
 			? 0
 			: viewModel.filteredPokemon.length;
+	const modalMarkup = activePokemon
+		? pokemonDetailsModalTemplate({
+				pokemon: activePokemon,
+				details:
+					viewModel.pokemonDetailsCache.get(activePokemon.searchName)
+						?.details ?? null,
+				isLoading: viewModel.isPokemonDetailsLoading,
+				errorMessage: viewModel.pokemonDetailsErrorMessage,
+			})
+		: "";
 
 	root.innerHTML = `
     <div class="min-h-screen bg-white text-slate-700">
@@ -138,6 +161,7 @@ export function renderPokemonGrid(root, viewModel) {
 						: ""
 				}
       </main>
+      ${modalMarkup}
     </div>
   `;
 }

@@ -7,10 +7,13 @@ vi.mock("../src/assets/pokedex-logo.png", () => ({
 import { bindUiEvents } from "../src/events/ui-events.js";
 import { renderPokemonGrid } from "../src/render/render-pokemon-grid.js";
 import {
+	closePokemonDetailsModal,
 	hydrateViewState,
+	openPokemonDetailsModal,
 	resetState,
 	setAllPokemon,
 	setCurrentPage,
+	setPokemonDetailsLoading,
 	setSearchTerm,
 	setSelectedType,
 	state,
@@ -32,6 +35,20 @@ function createPokemon(id, name, rawType) {
 		name,
 		searchName: name.toLowerCase(),
 		image: `https://img.test/${name.toLowerCase()}.png`,
+	};
+}
+
+function createPokemonDetails(rawType, typeLabel) {
+	return {
+		height: "0,7 m",
+		weight: "6,9 kg",
+		types: [{ rawType, label: typeLabel }],
+		abilities: ["Overgrow", "Chlorophyll"],
+		stats: [
+			{ key: "hp", label: "Vida", value: 45 },
+			{ key: "attack", label: "Ataque", value: 49 },
+			{ key: "speed", label: "Velocidade", value: 45 },
+		],
 	};
 }
 
@@ -77,11 +94,11 @@ function createWindowMock() {
 		removeEventListener(type) {
 			listeners.delete(type);
 		},
-		dispatch(type) {
+		dispatch(type, event) {
 			const handler = listeners.get(type);
 
 			if (handler) {
-				handler();
+				handler(event);
 			}
 		},
 		setTimeout: (...args) => globalThis.setTimeout(...args),
@@ -144,6 +161,9 @@ describe("ui integration", () => {
 			},
 			onTypeChange: vi.fn(),
 			onPageChange: vi.fn(),
+			onPokemonCardOpen: vi.fn(),
+			onPokemonDetailsClose: vi.fn(),
+			onPokemonDetailsRetry: vi.fn(),
 			onPopState: vi.fn(),
 		});
 
@@ -195,6 +215,9 @@ describe("ui integration", () => {
 				setCurrentPage(page);
 				renderApp();
 			},
+			onPokemonCardOpen: vi.fn(),
+			onPokemonDetailsClose: vi.fn(),
+			onPokemonDetailsRetry: vi.fn(),
 			onPopState: vi.fn(),
 		});
 
@@ -246,6 +269,9 @@ describe("ui integration", () => {
 				setCurrentPage(page);
 				renderApp();
 			},
+			onPokemonCardOpen: vi.fn(),
+			onPokemonDetailsClose: vi.fn(),
+			onPokemonDetailsRetry: vi.fn(),
 			onPopState: (viewState) => {
 				hydrateViewState(viewState);
 				renderApp();
@@ -261,6 +287,134 @@ describe("ui integration", () => {
 		expect(root.innerHTML).toContain("Squirtle");
 		expect(root.innerHTML).not.toContain("Bulbasaur");
 		expect(root.innerHTML).not.toContain("Charmander");
+
+		unbind();
+	});
+
+	it("opens a details modal and swaps the active pokémon correctly", () => {
+		const root = createRoot();
+		const bulbasaur = createPokemon(1, "Bulbasaur", "grass");
+		const charmander = createPokemon(4, "Charmander", "fire");
+
+		setAllPokemon([bulbasaur, charmander]);
+		state.pokemonDetailsCache.set("bulbasaur", {
+			...bulbasaur,
+			details: createPokemonDetails("grass", "Planta"),
+		});
+		state.pokemonDetailsCache.set("charmander", {
+			...charmander,
+			details: {
+				...createPokemonDetails("fire", "Fogo"),
+				abilities: ["Blaze", "Solar Power"],
+			},
+		});
+
+		const renderApp = () => {
+			renderPokemonGrid(root, state);
+		};
+
+		renderApp();
+
+		const unbind = bindUiEvents({
+			root,
+			onSearchChange: vi.fn(),
+			onTypeChange: vi.fn(),
+			onPageChange: vi.fn(),
+			onPokemonCardOpen: (name) => {
+				if (state.activePokemonName === name) {
+					return;
+				}
+
+				openPokemonDetailsModal(name);
+				setPokemonDetailsLoading(false);
+				renderApp();
+			},
+			onPokemonDetailsClose: () => {
+				closePokemonDetailsModal();
+				renderApp();
+			},
+			onPokemonDetailsRetry: vi.fn(),
+			onPopState: vi.fn(),
+		});
+
+		root.dispatch("click", {
+			target: createClosestTarget("pokemon-card", {
+				dataset: { pokemonName: "bulbasaur" },
+			}),
+		});
+
+		// O modal precisa refletir o pokémon ativo com os detalhes já normalizados.
+		expect(state.activePokemonName).toBe("bulbasaur");
+		expect(root.innerHTML).toContain('role="dialog"');
+		expect(root.innerHTML).toContain("Overgrow");
+		expect(root.innerHTML).toContain('data-role="pokemon-modal-dialog"');
+		expect(root.innerHTML).toContain('aria-expanded="true"');
+
+		root.dispatch("click", {
+			target: createClosestTarget("pokemon-card", {
+				dataset: { pokemonName: "charmander" },
+			}),
+		});
+
+		expect(state.activePokemonName).toBe("charmander");
+		expect(root.innerHTML).toContain("Solar Power");
+		expect(root.innerHTML).toContain("Velocidade");
+
+		root.dispatch("click", {
+			target: createClosestTarget("pokemon-modal-close"),
+		});
+
+		expect(state.activePokemonName).toBe("");
+		expect(root.innerHTML).not.toContain('role="dialog"');
+		expect(root.innerHTML).toContain('aria-expanded="false"');
+
+		unbind();
+	});
+
+	it("closes the modal on escape without affecting the current grid", () => {
+		const root = createRoot();
+		const bulbasaur = createPokemon(1, "Bulbasaur", "grass");
+
+		setAllPokemon([bulbasaur]);
+		state.pokemonDetailsCache.set("bulbasaur", {
+			...bulbasaur,
+			details: createPokemonDetails("grass", "Planta"),
+		});
+
+		const renderApp = () => {
+			renderPokemonGrid(root, state);
+		};
+
+		renderApp();
+
+		const unbind = bindUiEvents({
+			root,
+			onSearchChange: vi.fn(),
+			onTypeChange: vi.fn(),
+			onPageChange: vi.fn(),
+			onPokemonCardOpen: (name) => {
+				openPokemonDetailsModal(name);
+				renderApp();
+			},
+			onPokemonDetailsClose: () => {
+				closePokemonDetailsModal();
+				renderApp();
+			},
+			onPokemonDetailsRetry: vi.fn(),
+			onPopState: vi.fn(),
+		});
+
+		root.dispatch("click", {
+			target: createClosestTarget("pokemon-card", {
+				dataset: { pokemonName: "bulbasaur" },
+			}),
+		});
+
+		windowMock.dispatch("keydown", { key: "Escape" });
+
+		expect(state.activePokemonName).toBe("");
+		expect(root.innerHTML).toContain("Bulbasaur");
+		expect(root.innerHTML).not.toContain('role="dialog"');
 
 		unbind();
 	});
