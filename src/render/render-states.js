@@ -1,4 +1,5 @@
 function loadingSkeletonTemplate() {
+	// O skeleton preserva a estrutura visual do card real para evitar "layout jump".
 	return `
     <article class="animate-pulse rounded-[8px] bg-[#f7f8ff] px-3 py-2.5 sm:px-4 sm:py-3">
       <div class="flex items-center justify-between">

@@ -2,6 +2,7 @@ function debounce(callback, delayMs) {
 	let timeoutId;
 
 	return (value) => {
+		// Mantém apenas a última intenção do usuário em sequências rápidas de input.
 		window.clearTimeout(timeoutId);
 		timeoutId = window.setTimeout(() => {
 			callback(value);
@@ -37,6 +38,7 @@ export function writeViewStateToUrl(
 	{ searchTerm, selectedType, currentPage },
 	browser = window,
 ) {
+	// Persiste apenas o estado relevante para navegação e refresh.
 	const params = new URLSearchParams(browser.location.search);
 	const normalizedSearch = normalizeSearch(searchTerm);
 	const normalizedType = normalizeType(selectedType);
@@ -76,6 +78,7 @@ export function bindUiEvents({
 	const debouncedSearch = debounce(onSearchChange, searchDebounceMs);
 
 	const handleInput = (event) => {
+		// Usa delegação para sobreviver a re-renderizações sem rebinding manual.
 		const input = event.target.closest('[data-role="pokemon-search"]');
 
 		if (!input) {

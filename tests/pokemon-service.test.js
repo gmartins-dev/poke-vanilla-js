@@ -47,6 +47,8 @@ afterEach(() => {
 
 describe("pokemon logic helpers", () => {
 	it("combines search and type filters", () => {
+		// Valida o comportamento mais crítico da busca: combinar critérios
+		// sem a camada de UI interferir no resultado.
 		const result = applyPokemonFilters(pokemonFixture, {
 			searchTerm: "char",
 			selectedType: "fire",
@@ -57,6 +59,7 @@ describe("pokemon logic helpers", () => {
 	});
 
 	it("returns translated type options in stable order", () => {
+		// Garante previsibilidade visual no select de tipos.
 		const result = getPokemonTypeOptions(pokemonFixture);
 
 		expect(result).toEqual([
@@ -68,6 +71,8 @@ describe("pokemon logic helpers", () => {
 	});
 
 	it("clamps the page and slices correctly", () => {
+		// Confirma que a paginação corrige páginas fora do intervalo
+		// antes de devolver os itens visíveis.
 		const result = paginateItems(pokemonFixture, 5, 2);
 
 		expect(result.currentPage).toBe(2);
@@ -78,6 +83,8 @@ describe("pokemon logic helpers", () => {
 
 describe("state transitions", () => {
 	it("preserves the requested page from the URL until data arrives", () => {
+		// Esse cenário cobre o bootstrap real: primeiro a URL hidrata o estado,
+		// depois a lista chega e o estado derivado é recalculado.
 		hydrateViewState({
 			searchTerm: "saur",
 			selectedType: "grass",
@@ -99,6 +106,8 @@ describe("state transitions", () => {
 
 describe("url state helpers", () => {
 	it("round-trips search, filter and page values", () => {
+		// Mock mínimo de browser para testar a serialização da URL
+		// sem depender de ambiente DOM completo.
 		globalThis.window = {
 			location: {
 				search: "",

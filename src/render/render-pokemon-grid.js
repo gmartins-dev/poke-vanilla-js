@@ -76,6 +76,8 @@ function filterControlsTemplate({
 }
 
 export function renderPokemonGrid(root, viewModel) {
+	// O render recebe um view model já resolvido pela camada de estado.
+	// Aqui a responsabilidade é apenas estruturar a UI.
 	const cardsMarkup = viewModel.visiblePokemon
 		.map((pokemon) => pokemonCardTemplate(pokemon))
 		.join("");

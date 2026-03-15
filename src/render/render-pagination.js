@@ -4,6 +4,8 @@ import {
 } from "../components/pagination-button.js";
 
 function getVisiblePages(currentPage, totalPages, maxVisiblePages = 3) {
+	// Mostra uma janela curta de páginas para manter a paginação compacta
+	// mesmo quando o total cresce.
 	const visibleCount = Math.min(totalPages, maxVisiblePages);
 	const startPage = Math.max(
 		1,

@@ -79,6 +79,7 @@ export function applyPokemonFilters(
 	pokemonList,
 	{ searchTerm = "", selectedType = "all" } = {},
 ) {
+	// Encadeia filtros simples e previsíveis para manter a lógica testável.
 	return filterPokemonByType(
 		filterPokemonByName(pokemonList, searchTerm),
 		selectedType,
@@ -90,6 +91,7 @@ export function getPokemonTypeOptions(pokemonList) {
 		pokemonList.map((pokemon) => pokemon.rawType).filter(Boolean),
 	);
 
+	// A ordem é fixa para a UI não "saltar" conforme a lista filtrada muda.
 	return TYPE_ORDER.filter((type) =>
 		type === "all" ? true : availableTypes.has(type),
 	).map((type) => ({

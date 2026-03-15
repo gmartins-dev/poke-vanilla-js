@@ -3,6 +3,8 @@ function getSharedClasses() {
 }
 
 export function paginationPageButtonTemplate(page, currentPage) {
+	// O estado ativo fica concentrado no componente para o render
+	// de paginação não precisar repetir classes condicionais.
 	const isActive = page === currentPage;
 
 	return `

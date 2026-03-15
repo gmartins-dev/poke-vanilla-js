@@ -26,6 +26,8 @@ function createInitialState() {
 export const state = createInitialState();
 
 function ensureSelectedTypeIsAvailable() {
+	// Quando a lista base muda, o tipo presente na URL pode deixar de existir.
+	// Nesse caso, a UI recua para "all" para evitar um filtro inválido.
 	const availableTypes = new Set(
 		state.typeOptions.map((option) => option.value),
 	);
@@ -36,6 +38,8 @@ function ensureSelectedTypeIsAvailable() {
 }
 
 function syncFilteredPokemon() {
+	// Este é o ponto que mantém o estado derivado consistente:
+	// filtros, slice visível, página atual e total de páginas.
 	state.filteredPokemon = applyPokemonFilters(state.allPokemon, {
 		searchTerm: state.searchTerm,
 		selectedType: state.selectedType,
@@ -75,6 +79,8 @@ export function hydrateViewState({
 	selectedType = "all",
 	currentPage = 1,
 } = {}) {
+	// Reidrata apenas o estado navegável vindo da URL.
+	// O estado derivado só é recalculado quando a coleção base já existe.
 	state.searchTerm = normalizeSearchTerm(searchTerm);
 	state.selectedType = normalizeType(selectedType);
 	state.currentPage = normalizePage(currentPage);
@@ -93,6 +99,8 @@ export function setAllPokemon(pokemonList) {
 }
 
 export function setSearchTerm(value) {
+	// Busca e filtro sempre voltam para a primeira página
+	// para evitar páginas vazias após refinar o resultado.
 	state.searchTerm = normalizeSearchTerm(value);
 	state.currentPage = 1;
 	syncFilteredPokemon();

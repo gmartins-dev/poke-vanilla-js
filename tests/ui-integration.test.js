@@ -17,6 +17,7 @@ import {
 } from "../src/state/state.js";
 
 function createPokemon(id, name, rawType) {
+	// Fixture pequena, mas com o mesmo shape que o render espera em produção.
 	return {
 		number: `#${String(id).padStart(3, "0")}`,
 		type:
@@ -89,6 +90,7 @@ function createWindowMock() {
 }
 
 function createClosestTarget(role, options = {}) {
+	// Simula apenas a API de DOM usada pela delegação de eventos.
 	const target = {
 		value: options.value ?? "",
 		dataset: options.dataset ?? {},
@@ -151,6 +153,7 @@ describe("ui integration", () => {
 			}),
 		});
 
+		// Antes do debounce expirar, a UI ainda deve refletir o estado anterior.
 		expect(root.innerHTML).toContain("Bulbasaur");
 		expect(state.searchTerm).toBe("");
 
@@ -204,6 +207,7 @@ describe("ui integration", () => {
 			}),
 		});
 
+		// O teste valida o fluxo completo evento -> estado -> render.
 		expect(state.currentPage).toBe(2);
 		expect(root.innerHTML).toContain("Pokemon-019");
 		expect(root.innerHTML).toContain("Pokemon-020");
@@ -251,6 +255,7 @@ describe("ui integration", () => {
 		windowMock.location.search = "?search=squ&type=water&page=1";
 		windowMock.dispatch("popstate");
 
+		// Popstate é o ponto em que a navegação do browser precisa reconstruir a tela.
 		expect(state.searchTerm).toBe("squ");
 		expect(state.selectedType).toBe("water");
 		expect(root.innerHTML).toContain("Squirtle");

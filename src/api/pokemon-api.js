@@ -11,6 +11,8 @@ export class ApiError extends Error {
 }
 
 async function request(path) {
+	// Centraliza o tratamento técnico dos requests para a camada de API
+	// expor erros coerentes para o restante da aplicação.
 	const url = `${BASE_URL}${path}`;
 	let response;
 

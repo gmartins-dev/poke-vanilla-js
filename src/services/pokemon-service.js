@@ -25,6 +25,8 @@ function formatPokemonName(name) {
 }
 
 function formatPokemonDetails(details) {
+	// O service normaliza o payload bruto da PokéAPI para um formato
+	// estável que a UI consegue consumir sem conhecer a estrutura externa.
 	const rawType = details.types[0]?.type?.name ?? "normal";
 
 	return {
@@ -51,6 +53,8 @@ async function getPokemonDetailsCached(name) {
 		return state.pokemonDetailsRequests.get(normalizedName);
 	}
 
+	// Evita duplicar requests concorrentes para o mesmo pokémon
+	// enquanto o primeiro fetch ainda está em andamento.
 	const detailsRequest = fetchPokemonDetails(normalizedName)
 		.then((details) => {
 			const formatted = formatPokemonDetails(details);
@@ -81,6 +85,8 @@ async function getPokemonIndexCached(limit) {
 async function resolveInBatches(items, batchSize, mapper) {
 	const result = [];
 
+	// Faz o carregamento em lotes para reduzir explosão de concorrência
+	// sem abrir mão da paralelização dentro de cada bloco.
 	for (let index = 0; index < items.length; index += batchSize) {
 		const slice = items.slice(index, index + batchSize);
 		const chunk = await Promise.all(slice.map(mapper));
@@ -96,6 +102,8 @@ export async function getFirstGenerationPokemon() {
 	}
 
 	const pokemonIndex = await getPokemonIndexCached(151);
+	// A PokéAPI já devolve nomes únicos aqui, mas deduplicar mantém
+	// o fluxo defensivo caso a origem mude no futuro.
 	const uniquePokemonIndex = Array.from(
 		new Map(pokemonIndex.map((pokemon) => [pokemon.name, pokemon])).values(),
 	);

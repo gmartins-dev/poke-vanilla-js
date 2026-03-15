@@ -19,6 +19,8 @@ const TYPE_TEXT_STYLES = {
 };
 
 export function pokemonCardTemplate(pokemon) {
+	// A cor do tipo fica isolada no componente para a camada de render
+	// trabalhar só com dados sem conhecer o mapeamento visual.
 	const typeClass = TYPE_TEXT_STYLES[pokemon.rawType] ?? "text-emerald-500";
 
 	return `

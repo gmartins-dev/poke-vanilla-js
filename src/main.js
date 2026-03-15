@@ -54,6 +54,7 @@ function syncUrlState() {
 }
 
 function renderApp() {
+	// O render lê somente o estado já preparado, sem recalcular regra de negócio aqui.
 	renderPokemonGrid(appRoot, state);
 }
 
@@ -82,6 +83,8 @@ bindUiEvents({
 });
 
 async function bootstrap() {
+	// O bootstrap reconstrói a navegação antes do fetch para que loading,
+	// URL e estado inicial já fiquem coerentes desde o primeiro paint.
 	const urlState = readViewStateFromUrl();
 
 	hydrateViewState(urlState);
