@@ -1,3 +1,5 @@
+const BASE_URL = "https://pokeapi.co/api/v2";
+
 export class ApiError extends Error {
 	constructor(message, options = {}) {
 		super(message);
@@ -8,7 +10,8 @@ export class ApiError extends Error {
 	}
 }
 
-export async function request(url) {
+async function request(path) {
+	const url = `${BASE_URL}${path}`;
 	let response;
 
 	try {
@@ -35,4 +38,12 @@ export async function request(url) {
 			cause: error,
 		});
 	}
+}
+
+export function fetchPokemonIndex(limit = 151) {
+	return request(`/pokemon?limit=${limit}`);
+}
+
+export function fetchPokemonDetails(name) {
+	return request(`/pokemon/${name}`);
 }

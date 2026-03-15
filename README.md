@@ -1,6 +1,6 @@
 # Pokédex Vanilla JS
 
-Implementação do desafio técnico front-end com foco em JavaScript vanilla, arquitetura modular e fidelidade visual ao Figma.
+Implementação do desafio técnico front-end com foco em separação de camadas, JavaScript vanilla e manutenção simples.
 
 ## Objetivo
 
@@ -10,56 +10,74 @@ Entregar uma Pokédex interativa com:
 - busca sem recarregar a página
 - filtro por tipo
 - paginação client-side
+- sincronização de `search`, `type` e `page` na URL
 - responsividade para mobile, tablet e desktop
 
-## Justificativa da Stack
+## Stack
 
-- `Vanilla JavaScript (ES Modules)`: atende diretamente ao requisito principal do teste e evidencia organização sem depender de framework.
-- `Vite`: reduz setup manual, melhora a experiência de desenvolvimento e mantém o projeto leve.
-- `Tailwind CSS v4`: acelera a aproximação com o layout do Figma sem introduzir uma camada de abstração pesada.
-- `Biome`: garante padronização de lint e formatação com configuração mínima.
-
-## Funcionalidades
-
-- listagem dos 151 pokémons usando PokéAPI
-- busca client-side por nome
-- filtro por tipo
-- paginação sem reload
-- sincronização de `search`, `type` e `page` na URL
-- cache em `Map` para índice e detalhes dos pokémons
-- deduplicação de requests em voo
-- layout responsivo com page size adaptado à altura da viewport
+- `Vite v7`
+- `Vanilla JavaScript` com `ES Modules`
+- `Tailwind CSS v4`
+- `Biome`
+- `Vitest`
 
 ## Arquitetura
 
 Fluxo principal:
 
-`api -> services -> state -> render -> events`
+`API -> Service -> State -> Render -> Events`
 
-Responsabilidades:
+Como as responsabilidades estão separadas:
 
-- `src/api.js`: comunicação bruta com a PokéAPI
-- `src/services/pokemon-service.js`: transformação, filtros, paginação e opções derivadas
-- `src/state.js`: estado centralizado da aplicação
-- `src/render/`: renderização de layout, estados e paginação
-- `src/components/`: partes reutilizáveis da UI
-- `src/events.js`: binding dos eventos de busca, filtro e paginação
-- `src/utils/`: debounce, request, URL state e responsividade
+- `src/api/pokemon-api.js`: comunicação HTTP bruta com a PokéAPI e tratamento técnico de erro.
+- `src/services/pokemon-service.js`: cache, normalização dos dados e orquestração do carregamento da 1ª geração.
+- `src/state/state.js`: fonte única da verdade para busca, filtro, paginação, status de tela e coleções derivadas.
+- `src/logic/filters.js`: regras puras de busca, filtro e derivação das opções de tipo.
+- `src/logic/pagination.js`: regras puras de paginação e page size responsivo.
+- `src/render/`: geração de markup e atualização da UI.
+- `src/components/`: unidades reutilizáveis de interface.
+- `src/events/ui-events.js`: binding dos eventos do navegador, sincronização da URL e disparo do fluxo de renderização.
 
-## UX e Acessibilidade
+## Estrutura
 
-- busca, filtro e paginação funcionam sem refresh
-- resumo de resultados com `aria-live`
-- estados de loading, erro e vazio
-- foco visível em busca, filtro e paginação
-- paginação adaptada para telas menores
+```text
+src/
+  main.js
+  style.css
 
-## Como rodar
+  api/
+    pokemon-api.js
 
-```bash
-pnpm install
-pnpm dev
+  services/
+    pokemon-service.js
+
+  state/
+    state.js
+
+  logic/
+    filters.js
+    pagination.js
+
+  render/
+    render-pokemon-grid.js
+    render-pagination.js
+    render-states.js
+
+  components/
+    pagination-button.js
+    pokemon-card.js
+
+  events/
+    ui-events.js
 ```
+
+## Decisões de manutenção
+
+- filtros e paginação saíram da camada de serviço para módulos puros e testáveis
+- renderização não faz fetch nem calcula regras de negócio
+- eventos usam delegação no `#app`, evitando rebinding a cada render
+- estado centraliza dados derivados como `filteredPokemon`, `visiblePokemon` e `totalPages`
+- cache de índice, detalhes e requests em voo permanece em `Map`
 
 ## Scripts
 
@@ -68,15 +86,23 @@ pnpm dev
 pnpm build
 pnpm preview
 pnpm test
-pnpm exec biome lint src
+pnpm exec biome lint .
+pnpm exec biome format .
+```
+
+## Como rodar
+
+```bash
+pnpm install
+pnpm dev
 ```
 
 ## Testes
 
-Os testes usam o runner nativo do Node para validar:
+Os testes cobrem:
 
 - filtros combinados
-- paginação
-- geração de opções de tipo
-- regra de responsividade
-- leitura/escrita do estado da URL
+- opções de tipo derivadas
+- paginação e page size responsivo
+- transições de estado
+- leitura e escrita do estado na URL

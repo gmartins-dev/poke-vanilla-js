@@ -1,5 +1,6 @@
-import { fetchPokemonDetails, fetchPokemonIndex } from "../api.js";
-import { state } from "../state.js";
+import { fetchPokemonDetails, fetchPokemonIndex } from "../api/pokemon-api.js";
+import { getPokemonTypeLabel } from "../logic/filters.js";
+import { state } from "../state/state.js";
 
 const SPECIAL_NAME_LABELS = {
 	farfetchd: "Farfetch'd",
@@ -7,47 +8,6 @@ const SPECIAL_NAME_LABELS = {
 	"nidoran-f": "Nidoran♀",
 	"nidoran-m": "Nidoran♂",
 };
-
-const TYPE_LABELS = {
-	bug: "Inseto",
-	dragon: "Dragão",
-	electric: "Elétrico",
-	fairy: "Fada",
-	fighting: "Lutador",
-	fire: "Fogo",
-	flying: "Voador",
-	ghost: "Fantasma",
-	grass: "Planta",
-	ground: "Terra",
-	ice: "Gelo",
-	normal: "Normal",
-	poison: "Veneno",
-	psychic: "Psíquico",
-	rock: "Pedra",
-	steel: "Aço",
-	water: "Água",
-};
-
-const TYPE_ORDER = [
-	"all",
-	"bug",
-	"dragon",
-	"electric",
-	"fairy",
-	"fighting",
-	"fire",
-	"flying",
-	"ghost",
-	"grass",
-	"ground",
-	"ice",
-	"normal",
-	"poison",
-	"psychic",
-	"rock",
-	"steel",
-	"water",
-];
 
 function formatPokemonNumber(id) {
 	return `#${String(id).padStart(3, "0")}`;
@@ -64,18 +24,12 @@ function formatPokemonName(name) {
 		.join(" ");
 }
 
-function formatPokemonType(types) {
-	const rawType = types[0]?.type?.name ?? "normal";
-
-	return TYPE_LABELS[rawType] ?? rawType;
-}
-
 function formatPokemonDetails(details) {
 	const rawType = details.types[0]?.type?.name ?? "normal";
 
 	return {
 		number: formatPokemonNumber(details.id),
-		type: formatPokemonType(details.types),
+		type: getPokemonTypeLabel(rawType),
 		rawType,
 		name: formatPokemonName(details.name),
 		searchName: details.name,
@@ -149,62 +103,4 @@ export async function getFirstGenerationPokemon() {
 	return resolveInBatches(uniquePokemonIndex, 20, (pokemon) =>
 		getPokemonDetailsCached(pokemon.name),
 	);
-}
-
-export function filterPokemonByName(pokemonList, searchTerm) {
-	const normalizedTerm = searchTerm.trim().toLowerCase();
-
-	if (!normalizedTerm) {
-		return pokemonList;
-	}
-
-	return pokemonList.filter((pokemon) =>
-		`${pokemon.searchName} ${pokemon.name}`
-			.toLowerCase()
-			.includes(normalizedTerm),
-	);
-}
-
-export function filterPokemonByType(pokemonList, selectedType) {
-	if (!selectedType || selectedType === "all") {
-		return pokemonList;
-	}
-
-	return pokemonList.filter((pokemon) => pokemon.rawType === selectedType);
-}
-
-export function applyPokemonFilters(
-	pokemonList,
-	{ searchTerm = "", selectedType = "all" } = {},
-) {
-	return filterPokemonByType(
-		filterPokemonByName(pokemonList, searchTerm),
-		selectedType,
-	);
-}
-
-export function getPokemonTypeOptions(pokemonList) {
-	const availableTypes = new Set(
-		pokemonList.map((pokemon) => pokemon.rawType).filter(Boolean),
-	);
-
-	return TYPE_ORDER.filter((type) =>
-		type === "all" ? true : availableTypes.has(type),
-	).map((type) => ({
-		value: type,
-		label: type === "all" ? "Todos os tipos" : (TYPE_LABELS[type] ?? type),
-	}));
-}
-
-export function getPaginatedSlice(pokemonList, currentPage, pageSize) {
-	const totalPages = Math.max(1, Math.ceil(pokemonList.length / pageSize));
-	const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
-	const startIndex = (safeCurrentPage - 1) * pageSize;
-	const endIndex = startIndex + pageSize;
-
-	return {
-		items: pokemonList.slice(startIndex, endIndex),
-		currentPage: safeCurrentPage,
-		totalPages,
-	};
 }

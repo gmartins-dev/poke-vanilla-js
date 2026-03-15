@@ -7,7 +7,7 @@
 		"dev": "vite",
 		"build": "vite build",
 		"preview": "vite preview",
-		"test": "node --test"
+		"test": "vitest run"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.7",

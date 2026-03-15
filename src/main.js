@@ -1,31 +1,24 @@
 import "./style.css";
+import { ApiError } from "./api/pokemon-api.js";
 import {
-	bindFilterEvents,
-	bindPaginationEvents,
-	bindSearchEvents,
-} from "./events.js";
-import { renderHomeLayout } from "./render/render-home-layout.js";
+	bindUiEvents,
+	readViewStateFromUrl,
+	writeViewStateToUrl,
+} from "./events/ui-events.js";
+import { getResponsivePageSize } from "./logic/pagination.js";
+import { renderPokemonGrid } from "./render/render-pokemon-grid.js";
+import { getFirstGenerationPokemon } from "./services/pokemon-service.js";
 import {
-	applyPokemonFilters,
-	getFirstGenerationPokemon,
-	getPaginatedSlice,
-} from "./services/pokemon-service.js";
-import {
+	hydrateViewState,
 	setAllPokemon,
 	setCurrentPage,
-	setFilteredPokemon,
+	setErrorMessage,
+	setLoading,
 	setPageSize,
 	setSearchTerm,
 	setSelectedType,
 	state,
-} from "./state.js";
-import { debounce } from "./utils/debounce.js";
-import { ApiError } from "./utils/request.js";
-import { getResponsivePageSize } from "./utils/responsive.js";
-import {
-	readViewStateFromUrl,
-	writeViewStateToUrl,
-} from "./utils/url-state.js";
+} from "./state/state.js";
 
 const appRoot = document.querySelector("#app");
 
@@ -64,15 +57,6 @@ function syncResponsivePageSize() {
 	return true;
 }
 
-function applyCurrentFilters() {
-	const filteredPokemon = applyPokemonFilters(state.allPokemon, {
-		searchTerm: state.searchTerm,
-		selectedType: state.selectedType,
-	});
-
-	setFilteredPokemon(filteredPokemon);
-}
-
 function syncUrlState() {
 	writeViewStateToUrl({
 		searchTerm: state.searchTerm,
@@ -81,96 +65,63 @@ function syncUrlState() {
 	});
 }
 
-function renderApp({ isLoading = false, errorMessage = "" } = {}) {
-	syncResponsivePageSize();
-
-	const paginated = getPaginatedSlice(
-		state.filteredPokemon,
-		state.currentPage,
-		state.pageSize,
-	);
-	setCurrentPage(paginated.currentPage);
-
-	renderHomeLayout(appRoot, paginated.items, {
-		isLoading,
-		errorMessage,
-		allPokemon: state.allPokemon,
-		searchTerm: state.searchTerm,
-		selectedType: state.selectedType,
-		currentPage: state.currentPage,
-		totalPages: paginated.totalPages,
-		pageSize: state.pageSize,
-		totalResults: state.filteredPokemon.length,
-	});
-
-	if (!isLoading && !errorMessage) {
-		bindSearchEvents(appRoot, {
-			initialValue: state.searchTerm,
-			debounceMs: 250,
-			onSearch: (rawValue) => {
-				setSearchTerm(rawValue);
-				applyCurrentFilters();
-				syncUrlState();
-				renderApp();
-			},
-		});
-
-		bindFilterEvents(appRoot, {
-			initialValue: state.selectedType,
-			onFilterChange: (value) => {
-				setSelectedType(value);
-				applyCurrentFilters();
-				syncUrlState();
-				renderApp();
-			},
-		});
-
-		bindPaginationEvents(appRoot, {
-			currentPage: state.currentPage,
-			totalPages: paginated.totalPages,
-			onPageChange: (page) => {
-				setCurrentPage(page);
-				syncUrlState();
-				renderApp();
-			},
-		});
-	}
+function renderApp() {
+	renderPokemonGrid(appRoot, state);
 }
 
-const handleViewportResize = debounce(() => {
-	if (syncResponsivePageSize()) {
+bindUiEvents({
+	root: appRoot,
+	onSearchChange: (value) => {
+		setSearchTerm(value);
+		syncUrlState();
 		renderApp();
-	}
-}, 120);
+	},
+	onTypeChange: (value) => {
+		setSelectedType(value);
+		syncUrlState();
+		renderApp();
+	},
+	onPageChange: (page) => {
+		setCurrentPage(page);
+		syncUrlState();
+		renderApp();
+	},
+	onResize: () => {
+		if (!syncResponsivePageSize()) {
+			return;
+		}
 
-window.addEventListener("resize", handleViewportResize);
-window.addEventListener("popstate", () => {
-	const urlState = readViewStateFromUrl();
-	setSearchTerm(urlState.searchTerm);
-	setSelectedType(urlState.selectedType);
-	applyCurrentFilters();
-	setCurrentPage(urlState.currentPage);
-	renderApp();
+		syncUrlState();
+		renderApp();
+	},
+	onPopState: (viewState) => {
+		hydrateViewState(viewState);
+		syncResponsivePageSize();
+		renderApp();
+	},
 });
 
 async function bootstrap() {
 	const urlState = readViewStateFromUrl();
 
-	setSearchTerm(urlState.searchTerm);
-	setSelectedType(urlState.selectedType);
-	setFilteredPokemon([]);
-	setCurrentPage(urlState.currentPage);
-	renderApp({ isLoading: true });
+	hydrateViewState(urlState);
+	syncResponsivePageSize();
+	setLoading(true);
+	setErrorMessage("");
+	renderApp();
 
 	try {
 		const pokemonList = await getFirstGenerationPokemon();
 		setAllPokemon(pokemonList);
-		applyCurrentFilters();
 		setCurrentPage(urlState.currentPage);
+		setLoading(false);
+		setErrorMessage("");
 		syncUrlState();
 		renderApp();
 	} catch (error) {
-		renderApp({ errorMessage: getErrorMessage(error) });
+		setLoading(false);
+		setErrorMessage(getErrorMessage(error));
+		renderApp();
 	}
 }
 

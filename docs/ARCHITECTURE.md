@@ -1,111 +1,188 @@
-
 # ARCHITECTURE.md
 
-## Arquitetura da Pokédex
+## Visão Geral
 
-A aplicação segue uma arquitetura modular para manter o código simples e escalável.
+A Pokédex foi organizada para deixar explícita a separação entre lógica, estrutura da UI e styling.
 
-Stack:
+Fluxo principal:
 
-- Vite v7
-- Tailwind CSS v4
-- Vanilla JavaScript
-- Biome
+`API -> Service -> State -> Render -> Events`
 
----
+Leitura do fluxo:
 
-# Camadas da Aplicação
+1. `API` faz apenas requests HTTP para a PokéAPI.
+2. `Service` orquestra cache e normaliza os dados recebidos.
+3. `State` recebe os dados prontos e mantém a fonte única da verdade.
+4. `Render` transforma o estado atual em markup.
+5. `Events` escutam interações do usuário, atualizam o estado e disparam novo render.
 
-UI (HTML + Tailwind)
-↓
-Render Layer
-↓
-Application State
-↓
-Services
-↓
-PokéAPI
+## Estrutura
 
----
+```text
+src/
+  main.js
 
-# Estado Global
+  api/
+    pokemon-api.js
 
-Arquivo:
+  services/
+    pokemon-service.js
 
-state.js
+  state/
+    state.js
 
-state = {
-  allPokemon: [],
-  filteredPokemon: [],
-  pokemonDetailsCache: new Map(),
-  searchTerm: "",
-  currentPage: 1,
-  pageSize: 12,
-  totalPages: 1
-}
+  logic/
+    filters.js
+    pagination.js
 
----
+  render/
+    render-pokemon-grid.js
+    render-pagination.js
+    render-states.js
 
-# API
+  components/
+    pokemon-card.js
+    pagination-button.js
 
-api.js
+  events/
+    ui-events.js
+```
 
-Endpoints:
+## Separação De Responsabilidades
 
-https://pokeapi.co/api/v2/pokemon?limit=151
-https://pokeapi.co/api/v2/pokemon/{name}
+### API
 
----
-
-# Services
-
-services/pokemonService.js
+Arquivo: `src/api/pokemon-api.js`
 
 Responsável por:
 
-- cache
+- chamar a PokéAPI
+- encapsular erros de rede, HTTP e parsing
+
+Não faz:
+
+- mutação de estado
 - formatação de dados
-- integração com API
+- qualquer operação de DOM
 
----
+### Service
 
-# Render
+Arquivo: `src/services/pokemon-service.js`
 
-render/
+Responsável por:
 
-renderPokemonList.js
-renderPagination.js
-renderStatus.js
+- carregar a 1ª geração
+- cachear índice, detalhes e requests em voo
+- normalizar o payload da PokéAPI para o formato consumido pela aplicação
 
----
+Não faz:
 
-# Components
+- renderização
+- binding de eventos
 
-components/
+### State
 
-pokemonCard.js
-paginationButton.js
+Arquivo: `src/state/state.js`
 
----
+Responsável por:
 
-# Eventos
+- manter o estado global da aplicação
+- centralizar transições de busca, filtro, paginação e status
+- armazenar coleções derivadas como `filteredPokemon`, `visiblePokemon` e `totalPages`
 
-events.js
+Estado principal:
 
-- busca
-- paginação
+```js
+state = {
+  allPokemon: [],
+  filteredPokemon: [],
+  visiblePokemon: [],
+  typeOptions: [],
+  pokemonIndexCache: new Map(),
+  pokemonDetailsCache: new Map(),
+  pokemonDetailsRequests: new Map(),
+  searchTerm: "",
+  selectedType: "all",
+  currentPage: 1,
+  pageSize: 18,
+  totalPages: 1,
+  isLoading: false,
+  errorMessage: ""
+}
+```
 
----
+### Logic
 
-# Estilização
+Arquivos:
 
-Tailwind CSS v4
+- `src/logic/filters.js`
+- `src/logic/pagination.js`
 
----
+Responsável por:
 
-# Qualidade de Código
+- busca por nome
+- filtro por tipo
+- derivação das opções do select
+- cálculo de paginação
+- regra de page size responsivo
 
-Biome
+Todos os exports dessa camada são funções puras.
 
-- lint
-- format
+### Render
+
+Arquivos:
+
+- `src/render/render-pokemon-grid.js`
+- `src/render/render-pagination.js`
+- `src/render/render-states.js`
+
+Responsável por:
+
+- montar a estrutura da tela
+- renderizar cards, estados visuais e paginação
+- manter styling apenas com classes Tailwind
+
+Não faz:
+
+- fetch
+- atualização de estado
+- regras de negócio
+
+### Components
+
+Arquivos:
+
+- `src/components/pokemon-card.js`
+- `src/components/pagination-button.js`
+
+Responsável por:
+
+- pequenas unidades reutilizáveis de markup
+
+### Events
+
+Arquivo: `src/events/ui-events.js`
+
+Responsável por:
+
+- delegação de eventos da interface
+- debounce de busca e resize
+- sincronização de `search`, `type` e `page` na URL
+- disparo do ciclo de atualização da aplicação
+
+## Styling
+
+Toda a apresentação permanece em `Tailwind CSS v4`.
+
+Regras adotadas:
+
+- sem CSS utilitário customizado grande
+- sem lógica de negócio embutida em classes ou templates
+- classes de apresentação restritas à camada de render/components
+
+## Qualidade
+
+Ferramentas:
+
+- `Biome` para lint e formatação
+- `Vitest` para regras puras e helpers críticos de estado/URL

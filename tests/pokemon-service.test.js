@@ -2,17 +2,23 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
 	applyPokemonFilters,
-	getPaginatedSlice,
 	getPokemonTypeOptions,
-} from "../src/services/pokemon-service.js";
-import { getResponsivePageSize } from "../src/utils/responsive.js";
+} from "../src/logic/filters.js";
 import {
 	readViewStateFromUrl,
 	writeViewStateToUrl,
-} from "../src/utils/url-state.js";
+} from "../src/events/ui-events.js";
+import {
+	getResponsivePageSize,
+	paginateItems,
+} from "../src/logic/pagination.js";
+import {
+	hydrateViewState,
+	resetState,
+	setAllPokemon,
+	state,
+} from "../src/state/state.js";
 
-// Fixture pequena e previsível para validar busca, filtro e paginação
-// sem depender de requests externos ou de uma lista muito grande.
 const pokemonFixture = [
 	{
 		name: "Bulbasaur",
@@ -39,12 +45,11 @@ const pokemonFixture = [
 
 afterEach(() => {
 	delete globalThis.window;
+	resetState();
 });
 
-describe("pokemon service helpers", () => {
+describe("pokemon logic helpers", () => {
 	it("combines search and type filters", () => {
-		// Garante que a busca textual e o filtro por tipo funcionam juntos,
-		// retornando apenas os itens que satisfazem os dois critérios.
 		const result = applyPokemonFilters(pokemonFixture, {
 			searchTerm: "char",
 			selectedType: "fire",
@@ -55,8 +60,6 @@ describe("pokemon service helpers", () => {
 	});
 
 	it("returns translated type options in stable order", () => {
-		// Confirma que as opções do select são geradas com os rótulos em PT-BR
-		// e seguem uma ordem estável, útil para manter a UI previsível.
 		const result = getPokemonTypeOptions(pokemonFixture);
 
 		expect(result).toEqual([
@@ -68,20 +71,42 @@ describe("pokemon service helpers", () => {
 	});
 
 	it("clamps the page and slices correctly", () => {
-		// Verifica se a paginação corrige páginas fora do intervalo válido
-		// e devolve apenas o recorte correspondente à página final.
-		const result = getPaginatedSlice(pokemonFixture, 5, 2);
+		const result = paginateItems(pokemonFixture, 5, 2);
 
 		expect(result.currentPage).toBe(2);
 		expect(result.totalPages).toBe(2);
 		expect(result.items.map((pokemon) => pokemon.name)).toEqual(["Squirtle"]);
 	});
+
+	it("adapts page size to shorter viewports", () => {
+		expect(getResponsivePageSize(780)).toBe(12);
+		expect(getResponsivePageSize(900)).toBe(18);
+	});
+});
+
+describe("state transitions", () => {
+	it("preserves the requested page from the URL until data arrives", () => {
+		hydrateViewState({
+			searchTerm: "saur",
+			selectedType: "grass",
+			currentPage: 3,
+		});
+
+		expect(state.currentPage).toBe(3);
+		expect(state.searchTerm).toBe("saur");
+		expect(state.selectedType).toBe("grass");
+
+		setAllPokemon(pokemonFixture);
+
+		expect(state.currentPage).toBe(1);
+		expect(state.filteredPokemon.map((pokemon) => pokemon.name)).toEqual([
+			"Bulbasaur",
+		]);
+	});
 });
 
 describe("url state helpers", () => {
 	it("round-trips search, filter and page values", () => {
-		// Mock mínimo de window para validar a leitura/escrita do estado na URL
-		// sem precisar subir navegador real dentro do teste unitário.
 		globalThis.window = {
 			location: {
 				search: "",
@@ -96,19 +121,22 @@ describe("url state helpers", () => {
 			},
 		};
 
-		// Escreve estado na URL como a aplicação faz em tempo de execução.
-		writeViewStateToUrl({
-			searchTerm: "pikachu",
-			selectedType: "electric",
-			currentPage: 3,
-		});
+		const browser = globalThis.window;
 
-		// Depois lê de volta e garante que os helpers preservam os mesmos valores.
+		writeViewStateToUrl(
+			{
+				searchTerm: "pikachu",
+				selectedType: "electric",
+				currentPage: 3,
+			},
+			browser,
+		);
+
 		expect(globalThis.window.location.search).toBe(
 			"?search=pikachu&type=electric&page=3",
 		);
 
-		expect(readViewStateFromUrl()).toEqual({
+		expect(readViewStateFromUrl(browser)).toEqual({
 			searchTerm: "pikachu",
 			selectedType: "electric",
 			currentPage: 3,
