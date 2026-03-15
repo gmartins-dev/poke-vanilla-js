@@ -33,7 +33,7 @@ Como as responsabilidades estão separadas:
 - `src/services/pokemon-service.js`: cache, normalização dos dados e orquestração do carregamento da 1ª geração.
 - `src/state/state.js`: fonte única da verdade para busca, filtro, paginação, status de tela e coleções derivadas.
 - `src/logic/filters.js`: regras puras de busca, filtro e derivação das opções de tipo.
-- `src/logic/pagination.js`: regras puras de paginação e page size responsivo.
+- `src/logic/pagination.js`: regras puras de paginação.
 - `src/render/`: geração de markup e atualização da UI.
 - `src/components/`: unidades reutilizáveis de interface.
 - `src/events/ui-events.js`: binding dos eventos do navegador, sincronização da URL e disparo do fluxo de renderização.
@@ -103,6 +103,6 @@ Os testes cobrem:
 
 - filtros combinados
 - opções de tipo derivadas
-- paginação e page size responsivo
+- paginação client-side
 - transições de estado
 - leitura e escrita do estado na URL

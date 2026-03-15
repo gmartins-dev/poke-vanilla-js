@@ -124,7 +124,6 @@ Responsável por:
 - filtro por tipo
 - derivação das opções do select
 - cálculo de paginação
-- regra de page size responsivo
 
 Todos os exports dessa camada são funções puras.
 
@@ -166,7 +165,7 @@ Arquivo: `src/events/ui-events.js`
 Responsável por:
 
 - delegação de eventos da interface
-- debounce de busca e resize
+- debounce de busca
 - sincronização de `search`, `type` e `page` na URL
 - disparo do ciclo de atualização da aplicação
 

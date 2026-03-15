@@ -8,10 +8,7 @@ import {
 	readViewStateFromUrl,
 	writeViewStateToUrl,
 } from "../src/events/ui-events.js";
-import {
-	getResponsivePageSize,
-	paginateItems,
-} from "../src/logic/pagination.js";
+import { paginateItems } from "../src/logic/pagination.js";
 import {
 	hydrateViewState,
 	resetState,
@@ -76,11 +73,6 @@ describe("pokemon logic helpers", () => {
 		expect(result.currentPage).toBe(2);
 		expect(result.totalPages).toBe(2);
 		expect(result.items.map((pokemon) => pokemon.name)).toEqual(["Squirtle"]);
-	});
-
-	it("adapts page size to shorter viewports", () => {
-		expect(getResponsivePageSize(780)).toBe(12);
-		expect(getResponsivePageSize(900)).toBe(18);
 	});
 });
 

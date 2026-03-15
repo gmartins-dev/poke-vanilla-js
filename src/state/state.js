@@ -109,20 +109,6 @@ export function setCurrentPage(page) {
 	syncFilteredPokemon();
 }
 
-export function setPageSize(pageSize) {
-	const nextPageSize = Number(pageSize);
-
-	if (!Number.isInteger(nextPageSize) || nextPageSize <= 0) {
-		return;
-	}
-
-	state.pageSize = nextPageSize;
-
-	if (state.allPokemon.length > 0) {
-		syncFilteredPokemon();
-	}
-}
-
 export function setLoading(isLoading) {
 	state.isLoading = Boolean(isLoading);
 }

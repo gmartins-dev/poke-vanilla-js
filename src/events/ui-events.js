@@ -70,13 +70,10 @@ export function bindUiEvents({
 	onSearchChange,
 	onTypeChange,
 	onPageChange,
-	onResize,
 	onPopState,
 	searchDebounceMs = 250,
-	resizeDebounceMs = 120,
 }) {
 	const debouncedSearch = debounce(onSearchChange, searchDebounceMs);
-	const debouncedResize = debounce(() => onResize(), resizeDebounceMs);
 
 	const handleInput = (event) => {
 		const input = event.target.closest('[data-role="pokemon-search"]');
@@ -114,10 +111,6 @@ export function bindUiEvents({
 		}
 	};
 
-	const handleResize = () => {
-		debouncedResize("");
-	};
-
 	const handlePopState = () => {
 		onPopState(readViewStateFromUrl());
 	};
@@ -125,14 +118,12 @@ export function bindUiEvents({
 	root.addEventListener("input", handleInput);
 	root.addEventListener("change", handleChange);
 	root.addEventListener("click", handleClick);
-	window.addEventListener("resize", handleResize);
 	window.addEventListener("popstate", handlePopState);
 
 	return () => {
 		root.removeEventListener("input", handleInput);
 		root.removeEventListener("change", handleChange);
 		root.removeEventListener("click", handleClick);
-		window.removeEventListener("resize", handleResize);
 		window.removeEventListener("popstate", handlePopState);
 	};
 }

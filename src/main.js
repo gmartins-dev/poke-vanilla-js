@@ -5,7 +5,6 @@ import {
 	readViewStateFromUrl,
 	writeViewStateToUrl,
 } from "./events/ui-events.js";
-import { getResponsivePageSize } from "./logic/pagination.js";
 import { renderPokemonGrid } from "./render/render-pokemon-grid.js";
 import { getFirstGenerationPokemon } from "./services/pokemon-service.js";
 import {
@@ -14,7 +13,6 @@ import {
 	setCurrentPage,
 	setErrorMessage,
 	setLoading,
-	setPageSize,
 	setSearchTerm,
 	setSelectedType,
 	state,
@@ -46,17 +44,6 @@ function getErrorMessage(error) {
 	return "Não foi possível carregar os pokémons. Tente novamente.";
 }
 
-function syncResponsivePageSize() {
-	const nextPageSize = getResponsivePageSize(window.innerHeight);
-
-	if (state.pageSize === nextPageSize) {
-		return false;
-	}
-
-	setPageSize(nextPageSize);
-	return true;
-}
-
 function syncUrlState() {
 	writeViewStateToUrl({
 		searchTerm: state.searchTerm,
@@ -86,17 +73,8 @@ bindUiEvents({
 		syncUrlState();
 		renderApp();
 	},
-	onResize: () => {
-		if (!syncResponsivePageSize()) {
-			return;
-		}
-
-		syncUrlState();
-		renderApp();
-	},
 	onPopState: (viewState) => {
 		hydrateViewState(viewState);
-		syncResponsivePageSize();
 		renderApp();
 	},
 });
@@ -105,7 +83,6 @@ async function bootstrap() {
 	const urlState = readViewStateFromUrl();
 
 	hydrateViewState(urlState);
-	syncResponsivePageSize();
 	setLoading(true);
 	setErrorMessage("");
 	renderApp();
