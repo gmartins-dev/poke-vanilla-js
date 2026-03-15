@@ -1,11 +1,63 @@
 import { fetchPokemonDetails, fetchPokemonIndex } from "../api.js";
 import { state } from "../state.js";
 
+const SPECIAL_NAME_LABELS = {
+	farfetchd: "Farfetch'd",
+	"mr-mime": "Mr. Mime",
+	"nidoran-f": "Nidoran♀",
+	"nidoran-m": "Nidoran♂",
+};
+
+const TYPE_LABELS = {
+	bug: "Inseto",
+	dragon: "Dragão",
+	electric: "Elétrico",
+	fairy: "Fada",
+	fighting: "Lutador",
+	fire: "Fogo",
+	flying: "Voador",
+	ghost: "Fantasma",
+	grass: "Planta",
+	ground: "Terra",
+	ice: "Gelo",
+	normal: "Normal",
+	poison: "Veneno",
+	psychic: "Psíquico",
+	rock: "Pedra",
+	steel: "Aço",
+	water: "Água",
+};
+
+function formatPokemonNumber(id) {
+	return `#${String(id).padStart(3, "0")}`;
+}
+
+function formatPokemonName(name) {
+	if (SPECIAL_NAME_LABELS[name]) {
+		return SPECIAL_NAME_LABELS[name];
+	}
+
+	return name
+		.split("-")
+		.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+		.join(" ");
+}
+
+function formatPokemonType(types) {
+	const rawType = types[0]?.type?.name ?? "normal";
+
+	return TYPE_LABELS[rawType] ?? rawType;
+}
+
 function formatPokemonDetails(details) {
+	const rawType = details.types[0]?.type?.name ?? "normal";
+
 	return {
-		number: `#${String(details.id).padStart(4, "0")}`,
-		type: details.types[0]?.type?.name ?? "unknown",
-		name: details.name,
+		number: formatPokemonNumber(details.id),
+		type: formatPokemonType(details.types),
+		rawType,
+		name: formatPokemonName(details.name),
+		searchName: details.name,
 		image:
 			details.sprites.other["official-artwork"].front_default ??
 			details.sprites.front_default ??
@@ -86,7 +138,9 @@ export function filterPokemonByName(pokemonList, searchTerm) {
 	}
 
 	return pokemonList.filter((pokemon) =>
-		pokemon.name.toLowerCase().includes(normalizedTerm),
+		`${pokemon.searchName} ${pokemon.name}`
+			.toLowerCase()
+			.includes(normalizedTerm),
 	);
 }
 

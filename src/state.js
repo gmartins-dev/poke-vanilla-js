@@ -6,7 +6,7 @@ export const state = {
 	pokemonDetailsRequests: new Map(),
 	searchTerm: "",
 	currentPage: 1,
-	pageSize: 12,
+	pageSize: 18,
 	totalPages: 1,
 };
 

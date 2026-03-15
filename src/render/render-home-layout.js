@@ -1,7 +1,10 @@
 import { pokemonCardTemplate } from "../components/pokemon-card.js";
 import { pokemonCardSkeletonTemplate } from "../components/pokemon-card-skeleton.js";
+import pokedexLogo from "../assets/pokedex-logo.png";
 import { renderPagination } from "./render-pagination.js";
 import { renderStatus } from "./render-status.js";
+
+const SKELETON_COUNT = 18;
 
 function escapeAttribute(value) {
 	return value.replaceAll("&", "&amp;").replaceAll('"', "&quot;");
@@ -10,9 +13,7 @@ function escapeAttribute(value) {
 function logoTemplate() {
 	return `
     <a href="#" class="inline-flex items-center" aria-label="Página inicial da Pokédex">
-      <span class="text-3xl font-black tracking-tight text-yellow-300 [text-shadow:_-2px_-2px_0_#1d4ed8,_2px_-2px_0_#1d4ed8,_-2px_2px_0_#1d4ed8,_2px_2px_0_#1d4ed8]">
-        Pokédex
-      </span>
+      <img src="${pokedexLogo}" alt="Pokédex" class="block h-[38px] w-auto sm:h-[40px]" />
     </a>
   `;
 }
@@ -30,10 +31,10 @@ function searchTemplate(searchTerm = "") {
         data-role="pokemon-search"
         value="${safeValue}"
         placeholder="Faça uma busca pelo nome do pokémon"
-        class="h-11 w-full rounded-full bg-slate-100 px-6 pr-12 text-sm text-slate-600 outline-none ring-1 ring-transparent placeholder:text-slate-500 focus:ring-slate-300"
+        class="h-8 w-full rounded-full border border-transparent bg-[#f3f4fb] px-8 pr-11 text-[12px] font-medium text-[#6b7081] outline-none transition focus:border-[#d8dce8]"
       />
-      <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-500">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-[#5c6378]">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-[14px] w-[14px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
           <circle cx="11" cy="11" r="8"></circle>
           <path d="M21 21l-4.3-4.3"></path>
         </svg>
@@ -56,7 +57,7 @@ export function renderHomeLayout(
 	const cards = pokemonList
 		.map((pokemon) => pokemonCardTemplate(pokemon))
 		.join("");
-	const skeletons = Array.from({ length: 12 }, () =>
+	const skeletons = Array.from({ length: SKELETON_COUNT }, () =>
 		pokemonCardSkeletonTemplate(),
 	).join("");
 	const hasResults = cards.length > 0;
@@ -66,32 +67,32 @@ export function renderHomeLayout(
 	const gridContent = isLoading ? skeletons : cards;
 
 	root.innerHTML = `
-    <div class="min-h-screen bg-zinc-100 text-slate-700">
-      <header class="border-b border-zinc-300">
-        <div class="mx-auto flex max-w-[1280px] items-center justify-between px-4 py-4 sm:px-6 md:px-8">
+    <div class="min-h-screen bg-white text-slate-700">
+      <header class="border-b border-[#e8ebf2]">
+        <div class="mx-auto flex max-w-[1366px] items-center justify-between px-[18px] py-3">
           ${logoTemplate()}
-          <nav class="flex items-center gap-2 text-xs sm:text-sm">
-            <a href="#" class="rounded-md bg-zinc-200 px-2.5 py-1.5 text-slate-700">Home</a>
-            <a href="#" class="rounded-md px-2.5 py-1.5 text-slate-600">Pokédex</a>
+          <nav class="flex items-center gap-1 text-[12px] font-medium">
+            <a href="#" class="rounded-md bg-[#f2f3f7] px-3 py-1.5 text-[#555d71]">Home</a>
+            <a href="#" class="rounded-md px-3 py-1.5 text-[#636b7f]">Pokédex</a>
           </nav>
         </div>
       </header>
 
-      <main class="mx-auto max-w-[1280px] px-4 py-8 sm:px-6 md:px-8">
+      <main class="mx-auto max-w-[1366px] px-[18px] pt-4 pb-10">
         ${searchTemplate(searchTerm)}
 
         ${statusMarkup}
         ${
 					shouldShowGrid
 						? `
-          <section class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-6" aria-label="Lista de Pokémon">
+          <section class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6" aria-label="Lista de Pokémon">
             ${gridContent}
           </section>
         `
 						: ""
 				}
 
-        ${hasResults ? renderPagination({ currentPage, totalPages }) : ""}
+        ${hasResults && totalPages > 1 ? renderPagination({ currentPage, totalPages }) : ""}
       </main>
     </div>
   `;
