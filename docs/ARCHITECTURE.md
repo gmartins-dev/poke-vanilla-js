@@ -42,10 +42,14 @@ src/
 
   components/
     pokemon-card.js
+    pokemon-details-modal.js
     pagination-button.js
 
   events/
     ui-events.js
+
+  utils/
+    html.js
 ```
 
 ## Separação De Responsabilidades
@@ -71,7 +75,7 @@ Arquivo: `src/services/pokemon-service.js`
 
 Responsável por:
 
-- carregar a 1ª geração
+- carregar o catálogo completo da PokéAPI
 - cachear índice, detalhes e requests em voo
 - normalizar o payload da PokéAPI para o formato consumido pela aplicação
 
@@ -106,6 +110,9 @@ state = {
   currentPage: 1,
   pageSize: 18,
   totalPages: 1,
+  activePokemonName: "",
+  isPokemonDetailsLoading: false,
+  pokemonDetailsErrorMessage: "",
   isLoading: false,
   errorMessage: ""
 }
@@ -137,8 +144,8 @@ Arquivos:
 
 Responsável por:
 
-- montar a estrutura da tela
-- renderizar cards, estados visuais e paginação
+- montar a shell da tela uma única vez
+- atualizar regiões específicas como controles, grid, feedback, paginação e modal
 - manter styling apenas com classes Tailwind
 
 Não faz:
@@ -152,6 +159,7 @@ Não faz:
 Arquivos:
 
 - `src/components/pokemon-card.js`
+- `src/components/pokemon-details-modal.js`
 - `src/components/pagination-button.js`
 
 Responsável por:
@@ -168,6 +176,15 @@ Responsável por:
 - debounce de busca
 - sincronização de `search`, `type` e `page` na URL
 - disparo do ciclo de atualização da aplicação
+
+### Utils
+
+Arquivo: `src/utils/html.js`
+
+Responsável por:
+
+- centralizar escaping de conteúdo e atributos HTML
+- evitar duplicação de helpers de segurança em render/components
 
 ## Styling
 

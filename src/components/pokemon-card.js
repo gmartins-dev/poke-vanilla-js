@@ -1,3 +1,5 @@
+import { escapeAttribute, escapeHtml } from "../utils/html.js";
+
 const TYPE_TEXT_STYLES = {
 	bug: "text-[#A8B820]",
 	dragon: "text-[#7038F8]",
@@ -17,17 +19,6 @@ const TYPE_TEXT_STYLES = {
 	steel: "text-[#6F7A8A]",
 	water: "text-[#517BDE]",
 };
-
-function escapeHtml(value) {
-	return String(value ?? "")
-		.replaceAll("&", "&amp;")
-		.replaceAll("<", "&lt;")
-		.replaceAll(">", "&gt;");
-}
-
-function escapeAttribute(value) {
-	return escapeHtml(value).replaceAll('"', "&quot;");
-}
 
 function getTypeClass(rawType) {
 	return TYPE_TEXT_STYLES[rawType] ?? "text-[#59A63A]";

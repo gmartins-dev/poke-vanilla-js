@@ -1,3 +1,5 @@
+import { escapeAttribute, escapeHtml } from "../utils/html.js";
+
 const TYPE_TEXT_STYLES = {
 	bug: "bg-[#eff7c2] text-[#6f7b12]",
 	dragon: "bg-[#ede5ff] text-[#5d3edb]",
@@ -36,17 +38,6 @@ const TYPE_HERO_STYLES = {
 	steel: "from-[#ccd4de] via-[#e8edf2] to-[#fafbfc]",
 	water: "from-[#bcd0ff] via-[#e4edff] to-[#f8fbff]",
 };
-
-function escapeHtml(value) {
-	return String(value ?? "")
-		.replaceAll("&", "&amp;")
-		.replaceAll("<", "&lt;")
-		.replaceAll(">", "&gt;");
-}
-
-function escapeAttribute(value) {
-	return escapeHtml(value).replaceAll('"', "&quot;");
-}
 
 function getTypeBadgeClass(rawType) {
 	return TYPE_TEXT_STYLES[rawType] ?? "bg-[#dbf0d2] text-[#3d7f28]";

@@ -12,20 +12,25 @@ vi.mock("../src/api/pokemon-api.js", () => ({
 
 import {
 	getCachedPokemonDetails,
+	getPokemonCatalog,
 	getPokemonCardDetails,
 } from "../src/services/pokemon-service.js";
 import { resetState, state } from "../src/state/state.js";
 
-function createPokemonDetailsResponse() {
+function createPokemonDetailsResponse({
+	id = 1,
+	name = "bulbasaur",
+	rawTypes = ["grass", "poison"],
+} = {}) {
 	return {
-		id: 1,
-		name: "bulbasaur",
+		id,
+		name,
 		height: 7,
 		weight: 69,
-		types: [
-			{ slot: 1, type: { name: "grass" } },
-			{ slot: 2, type: { name: "poison" } },
-		],
+		types: rawTypes.map((rawType, index) => ({
+			slot: index + 1,
+			type: { name: rawType },
+		})),
 		abilities: [
 			{ slot: 1, ability: { name: "overgrow" } },
 			{ slot: 3, ability: { name: "chlorophyll" } },
@@ -78,5 +83,39 @@ describe("pokemon detail service", () => {
 		});
 		expect(getCachedPokemonDetails("bulbasaur")).toEqual(firstDetails);
 		expect(state.pokemonDetailsCache.get("bulbasaur")?.name).toBe("Bulbasaur");
+	});
+
+	it("fetches the full pokemon catalog across paginated index responses", async () => {
+		fetchPokemonIndexMock
+			.mockResolvedValueOnce({
+				count: 201,
+				results: [{ name: "bulbasaur" }, { name: "ivysaur" }],
+			})
+			.mockResolvedValueOnce({
+				count: 201,
+				results: [{ name: "venusaur" }],
+			});
+		fetchPokemonDetailsMock.mockImplementation((name) =>
+			Promise.resolve(
+				createPokemonDetailsResponse({
+					id: name === "bulbasaur" ? 1 : name === "ivysaur" ? 2 : 3,
+					name,
+					rawTypes: ["grass", "poison"],
+				}),
+			),
+		);
+
+		const catalog = await getPokemonCatalog();
+
+		// Garante que o service percorre o índice inteiro antes de resolver
+		// os detalhes, sem ficar preso ao recorte antigo da primeira geração.
+		expect(fetchPokemonIndexMock).toHaveBeenNthCalledWith(1, 200, 0);
+		expect(fetchPokemonIndexMock).toHaveBeenNthCalledWith(2, 200, 200);
+		expect(catalog.map((pokemon) => pokemon.name)).toEqual([
+			"Bulbasaur",
+			"Ivysaur",
+			"Venusaur",
+		]);
+		expect(fetchPokemonDetailsMock).toHaveBeenCalledTimes(3);
 	});
 });

@@ -47,6 +47,17 @@ function normalizeType(value) {
 	return value?.trim().toLowerCase() || "all";
 }
 
+function getPokemonRawTypes(pokemon) {
+	if (
+		Array.isArray(pokemon.details?.types) &&
+		pokemon.details.types.length > 0
+	) {
+		return pokemon.details.types.map((type) => type.rawType);
+	}
+
+	return pokemon.rawType ? [pokemon.rawType] : [];
+}
+
 export function getPokemonTypeLabel(type) {
 	return TYPE_LABELS[type] ?? type;
 }
@@ -72,7 +83,9 @@ export function filterPokemonByType(pokemonList, selectedType) {
 		return pokemonList;
 	}
 
-	return pokemonList.filter((pokemon) => pokemon.rawType === normalizedType);
+	return pokemonList.filter((pokemon) =>
+		getPokemonRawTypes(pokemon).includes(normalizedType),
+	);
 }
 
 export function applyPokemonFilters(
@@ -88,7 +101,9 @@ export function applyPokemonFilters(
 
 export function getPokemonTypeOptions(pokemonList) {
 	const availableTypes = new Set(
-		pokemonList.map((pokemon) => pokemon.rawType).filter(Boolean),
+		pokemonList
+			.flatMap((pokemon) => getPokemonRawTypes(pokemon))
+			.filter(Boolean),
 	);
 
 	// A ordem é fixa para a UI não "saltar" conforme a lista filtrada muda.

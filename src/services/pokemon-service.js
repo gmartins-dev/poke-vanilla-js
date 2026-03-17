@@ -18,6 +18,8 @@ const DETAIL_STAT_LABELS = {
 	speed: "Velocidade",
 };
 const DETAIL_STAT_ORDER = ["hp", "attack", "speed"];
+const POKEMON_INDEX_PAGE_SIZE = 200;
+const POKEMON_DETAILS_BATCH_SIZE = 24;
 
 function formatPokemonNumber(id) {
 	return `#${String(id).padStart(3, "0")}`;
@@ -131,16 +133,21 @@ async function getPokemonDetailsCached(name) {
 	return detailsRequest;
 }
 
-async function getPokemonIndexCached(limit) {
-	if (state.pokemonIndexCache.has(limit)) {
-		return state.pokemonIndexCache.get(limit);
+function getPokemonIndexCacheKey(limit, offset) {
+	return `${limit}:${offset}`;
+}
+
+async function getPokemonIndexCached(limit, offset = 0) {
+	const cacheKey = getPokemonIndexCacheKey(limit, offset);
+
+	if (state.pokemonIndexCache.has(cacheKey)) {
+		return state.pokemonIndexCache.get(cacheKey);
 	}
 
-	const response = await fetchPokemonIndex(limit);
-	const pokemonIndex = response.results ?? [];
-	state.pokemonIndexCache.set(limit, pokemonIndex);
+	const response = await fetchPokemonIndex(limit, offset);
+	state.pokemonIndexCache.set(cacheKey, response);
 
-	return pokemonIndex;
+	return response;
 }
 
 async function resolveInBatches(items, batchSize, mapper) {
@@ -157,20 +164,44 @@ async function resolveInBatches(items, batchSize, mapper) {
 	return result;
 }
 
-export async function getFirstGenerationPokemon() {
-	if (state.allPokemon.length >= 151) {
+async function getPokemonCatalogIndex() {
+	const firstPage = await getPokemonIndexCached(POKEMON_INDEX_PAGE_SIZE, 0);
+	const totalCount = firstPage.count ?? firstPage.results?.length ?? 0;
+	const remainingOffsets = [];
+
+	for (
+		let offset = POKEMON_INDEX_PAGE_SIZE;
+		offset < totalCount;
+		offset += POKEMON_INDEX_PAGE_SIZE
+	) {
+		remainingOffsets.push(offset);
+	}
+
+	const remainingPages = await Promise.all(
+		remainingOffsets.map((offset) =>
+			getPokemonIndexCached(POKEMON_INDEX_PAGE_SIZE, offset),
+		),
+	);
+
+	return [firstPage, ...remainingPages].flatMap((page) => page.results ?? []);
+}
+
+export async function getPokemonCatalog() {
+	if (state.allPokemon.length > 0) {
 		return state.allPokemon;
 	}
 
-	const pokemonIndex = await getPokemonIndexCached(151);
+	const pokemonIndex = await getPokemonCatalogIndex();
 	// A PokéAPI já devolve nomes únicos aqui, mas deduplicar mantém
 	// o fluxo defensivo caso a origem mude no futuro.
 	const uniquePokemonIndex = Array.from(
 		new Map(pokemonIndex.map((pokemon) => [pokemon.name, pokemon])).values(),
 	);
 
-	return resolveInBatches(uniquePokemonIndex, 20, (pokemon) =>
-		getPokemonDetailsCached(pokemon.name),
+	return resolveInBatches(
+		uniquePokemonIndex,
+		POKEMON_DETAILS_BATCH_SIZE,
+		(pokemon) => getPokemonDetailsCached(pokemon.name),
 	);
 }
 

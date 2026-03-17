@@ -42,8 +42,8 @@ async function request(path) {
 	}
 }
 
-export function fetchPokemonIndex(limit = 151) {
-	return request(`/pokemon?limit=${limit}`);
+export function fetchPokemonIndex(limit = 200, offset = 0) {
+	return request(`/pokemon?limit=${limit}&offset=${offset}`);
 }
 
 export function fetchPokemonDetails(name) {

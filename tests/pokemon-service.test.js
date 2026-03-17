@@ -23,6 +23,12 @@ const pokemonFixture = [
 		rawType: "grass",
 		type: "Planta",
 		number: "#001",
+		details: {
+			types: [
+				{ rawType: "grass", label: "Planta" },
+				{ rawType: "poison", label: "Veneno" },
+			],
+		},
 	},
 	{
 		name: "Charmander",
@@ -30,6 +36,9 @@ const pokemonFixture = [
 		rawType: "fire",
 		type: "Fogo",
 		number: "#004",
+		details: {
+			types: [{ rawType: "fire", label: "Fogo" }],
+		},
 	},
 	{
 		name: "Squirtle",
@@ -37,6 +46,9 @@ const pokemonFixture = [
 		rawType: "water",
 		type: "Água",
 		number: "#007",
+		details: {
+			types: [{ rawType: "water", label: "Água" }],
+		},
 	},
 ];
 
@@ -66,8 +78,17 @@ describe("pokemon logic helpers", () => {
 			{ value: "all", label: "Todos os tipos" },
 			{ value: "fire", label: "Fogo" },
 			{ value: "grass", label: "Planta" },
+			{ value: "poison", label: "Veneno" },
 			{ value: "water", label: "Água" },
 		]);
+	});
+
+	it("considers secondary types during filtering", () => {
+		const result = applyPokemonFilters(pokemonFixture, {
+			selectedType: "poison",
+		});
+
+		expect(result.map((pokemon) => pokemon.name)).toEqual(["Bulbasaur"]);
 	});
 
 	it("clamps the page and slices correctly", () => {

@@ -9,7 +9,7 @@ import {
 import { renderPokemonGrid } from "./render/render-pokemon-grid.js";
 import {
 	getCachedPokemonDetails,
-	getFirstGenerationPokemon,
+	getPokemonCatalog,
 	getPokemonCardDetails,
 } from "./services/pokemon-service.js";
 import {
@@ -95,6 +95,7 @@ function syncUrlState() {
 }
 
 function syncModalUiState() {
+	// Mantém foco e scroll do documento coerentes quando o modal abre/fecha.
 	document.body.classList.toggle(
 		"overflow-hidden",
 		Boolean(state.activePokemonName),
@@ -218,7 +219,7 @@ async function bootstrap() {
 	renderApp();
 
 	try {
-		const pokemonList = await getFirstGenerationPokemon();
+		const pokemonList = await getPokemonCatalog();
 		setAllPokemon(pokemonList);
 		setCurrentPage(urlState.currentPage);
 		setLoading(false);
