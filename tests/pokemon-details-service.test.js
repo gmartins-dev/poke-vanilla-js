@@ -1,13 +1,16 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-const { fetchPokemonDetailsMock, fetchPokemonIndexMock } = vi.hoisted(() => ({
-	fetchPokemonDetailsMock: vi.fn(),
-	fetchPokemonIndexMock: vi.fn(),
-}));
+const { fetchPokemonDetailsMock, fetchPokemonIndexMock, fetchPokemonTypeMock } =
+	vi.hoisted(() => ({
+		fetchPokemonDetailsMock: vi.fn(),
+		fetchPokemonIndexMock: vi.fn(),
+		fetchPokemonTypeMock: vi.fn(),
+	}));
 
 vi.mock("../src/api/pokemon-api.js", () => ({
 	fetchPokemonDetails: fetchPokemonDetailsMock,
 	fetchPokemonIndex: fetchPokemonIndexMock,
+	fetchPokemonType: fetchPokemonTypeMock,
 }));
 
 import {
@@ -51,6 +54,19 @@ function createPokemonDetailsResponse({
 	};
 }
 
+function createTypeResponse(name, pokemonEntries) {
+	return {
+		name,
+		pokemon: pokemonEntries.map(([pokemonName, slot]) => ({
+			pokemon: {
+				name: pokemonName,
+				url: `https://pokeapi.co/api/v2/pokemon/${pokemonName}`,
+			},
+			slot,
+		})),
+	};
+}
+
 afterEach(() => {
 	vi.clearAllMocks();
 	resetState();
@@ -89,33 +105,120 @@ describe("pokemon detail service", () => {
 		fetchPokemonIndexMock
 			.mockResolvedValueOnce({
 				count: 201,
-				results: [{ name: "bulbasaur" }, { name: "ivysaur" }],
+				results: [
+					{
+						name: "bulbasaur",
+						url: "https://pokeapi.co/api/v2/pokemon/1/",
+					},
+					{ name: "ivysaur", url: "https://pokeapi.co/api/v2/pokemon/2/" },
+				],
 			})
 			.mockResolvedValueOnce({
 				count: 201,
-				results: [{ name: "venusaur" }],
+				results: [
+					{ name: "venusaur", url: "https://pokeapi.co/api/v2/pokemon/3/" },
+				],
 			});
-		fetchPokemonDetailsMock.mockImplementation((name) =>
-			Promise.resolve(
-				createPokemonDetailsResponse({
-					id: name === "bulbasaur" ? 1 : name === "ivysaur" ? 2 : 3,
-					name,
-					rawTypes: ["grass", "poison"],
-				}),
-			),
-		);
+		fetchPokemonTypeMock.mockImplementation((typeName) => {
+			switch (typeName) {
+				case "grass":
+					return Promise.resolve(
+						createTypeResponse("grass", [
+							["bulbasaur", 1],
+							["ivysaur", 1],
+							["venusaur", 1],
+						]),
+					);
+				case "poison":
+					return Promise.resolve(
+						createTypeResponse("poison", [
+							["bulbasaur", 2],
+							["ivysaur", 2],
+							["venusaur", 2],
+						]),
+					);
+				default:
+					return Promise.resolve(createTypeResponse(typeName, []));
+			}
+		});
 
 		const catalog = await getPokemonCatalog();
 
-		// Garante que o service percorre o índice inteiro antes de resolver
-		// os detalhes, sem ficar preso ao recorte antigo da primeira geração.
+		// O bootstrap agora usa índice + tipos, deixando detalhes completos
+		// para o modal sob demanda.
 		expect(fetchPokemonIndexMock).toHaveBeenNthCalledWith(1, 200, 0);
 		expect(fetchPokemonIndexMock).toHaveBeenNthCalledWith(2, 200, 200);
-		expect(catalog.map((pokemon) => pokemon.name)).toEqual([
-			"Bulbasaur",
-			"Ivysaur",
-			"Venusaur",
+		expect(fetchPokemonTypeMock).toHaveBeenCalledTimes(18);
+		expect(catalog).toEqual([
+			{
+				number: "#001",
+				type: "Planta",
+				rawType: "grass",
+				name: "Bulbasaur",
+				searchName: "bulbasaur",
+				image:
+					"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png",
+				details: {
+					types: [
+						{ rawType: "grass", label: "Planta" },
+						{ rawType: "poison", label: "Veneno" },
+					],
+				},
+			},
+			{
+				number: "#002",
+				type: "Planta",
+				rawType: "grass",
+				name: "Ivysaur",
+				searchName: "ivysaur",
+				image:
+					"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/2.png",
+				details: {
+					types: [
+						{ rawType: "grass", label: "Planta" },
+						{ rawType: "poison", label: "Veneno" },
+					],
+				},
+			},
+			{
+				number: "#003",
+				type: "Planta",
+				rawType: "grass",
+				name: "Venusaur",
+				searchName: "venusaur",
+				image:
+					"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/3.png",
+				details: {
+					types: [
+						{ rawType: "grass", label: "Planta" },
+						{ rawType: "poison", label: "Veneno" },
+					],
+				},
+			},
 		]);
-		expect(fetchPokemonDetailsMock).toHaveBeenCalledTimes(3);
+		expect(fetchPokemonDetailsMock).not.toHaveBeenCalled();
+	});
+
+	it("reuses the lightweight catalog cache without refetching index or types", async () => {
+		fetchPokemonIndexMock.mockResolvedValue({
+			count: 1,
+			results: [
+				{ name: "bulbasaur", url: "https://pokeapi.co/api/v2/pokemon/1/" },
+			],
+		});
+		fetchPokemonTypeMock.mockImplementation((typeName) => {
+			if (typeName === "grass") {
+				return Promise.resolve(createTypeResponse("grass", [["bulbasaur", 1]]));
+			}
+
+			return Promise.resolve(createTypeResponse(typeName, []));
+		});
+
+		const firstCatalog = await getPokemonCatalog();
+		const secondCatalog = await getPokemonCatalog();
+
+		expect(secondCatalog).toStrictEqual(firstCatalog);
+		expect(fetchPokemonIndexMock).toHaveBeenCalledTimes(1);
+		expect(fetchPokemonTypeMock).toHaveBeenCalledTimes(18);
 	});
 });

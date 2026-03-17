@@ -49,3 +49,7 @@ export function fetchPokemonIndex(limit = 200, offset = 0) {
 export function fetchPokemonDetails(name) {
 	return request(`/pokemon/${name}`);
 }
+
+export function fetchPokemonType(type) {
+	return request(`/type/${type}`);
+}

@@ -75,8 +75,9 @@ Arquivo: `src/services/pokemon-service.js`
 
 Responsável por:
 
-- carregar o catálogo completo da PokéAPI
-- cachear índice, detalhes e requests em voo
+- carregar um catálogo leve via índice paginado da PokéAPI
+- enriquecer o catálogo com um mapa global de tipos sem baixar todos os detalhes no bootstrap
+- cachear índice, tipos, detalhes e requests em voo
 - normalizar o payload da PokéAPI para o formato consumido pela aplicação
 
 Não faz:
@@ -103,6 +104,7 @@ state = {
   visiblePokemon: [],
   typeOptions: [],
   pokemonIndexCache: new Map(),
+  pokemonTypeCache: new Map(),
   pokemonDetailsCache: new Map(),
   pokemonDetailsRequests: new Map(),
   searchTerm: "",
@@ -146,6 +148,7 @@ Responsável por:
 
 - montar a shell da tela uma única vez
 - atualizar regiões específicas como controles, grid, feedback, paginação e modal
+- manter a grid estável quando só o modal muda, evitando reinstanciar cards e imagens
 - manter styling apenas com classes Tailwind
 
 Não faz:

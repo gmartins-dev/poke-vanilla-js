@@ -2,6 +2,7 @@ import { escapeAttribute, escapeHtml } from "../utils/html.js";
 
 const TYPE_TEXT_STYLES = {
 	bug: "text-[#A8B820]",
+	dark: "text-[#705848]",
 	dragon: "text-[#7038F8]",
 	electric: "text-[#C5A500]",
 	fairy: "text-[#E08AA3]",

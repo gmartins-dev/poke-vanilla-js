@@ -30,7 +30,7 @@ Fluxo principal:
 Como as responsabilidades estão separadas:
 
 - `src/api/pokemon-api.js`: comunicação HTTP bruta com a PokéAPI e tratamento técnico de erro.
-- `src/services/pokemon-service.js`: cache, normalização dos dados e orquestração do catálogo completo da PokéAPI.
+- `src/services/pokemon-service.js`: cache, catálogo leve para bootstrap, mapa de tipos e normalização dos detalhes sob demanda.
 - `src/state/state.js`: fonte única da verdade para busca, filtro, paginação, status de tela e coleções derivadas.
 - `src/logic/filters.js`: regras puras de busca, filtro e derivação das opções de tipo.
 - `src/logic/pagination.js`: regras puras de paginação.
@@ -82,7 +82,9 @@ src/
 - a aplicação monta a shell uma única vez e atualiza só `controls`, `feedback`, `grid`, `pagination` e `modal`
 - eventos usam delegação no `#app`, evitando rebinding a cada render
 - estado centraliza dados derivados como `filteredPokemon`, `visiblePokemon` e `totalPages`
-- cache de índice, detalhes e requests em voo permanece em `Map`
+- o bootstrap usa índice paginado + mapa global de tipos para montar cards sem baixar detalhes completos de todos os pokémons
+- detalhes completos continuam sob demanda e reutilizam cache por nome
+- cache de índice, tipos, detalhes e requests em voo permanece em `Map`
 
 ## Scripts
 

@@ -1,5 +1,6 @@
 const TYPE_LABELS = {
 	bug: "Inseto",
+	dark: "Sombrio",
 	dragon: "Dragão",
 	electric: "Elétrico",
 	fairy: "Fada",
@@ -21,6 +22,7 @@ const TYPE_LABELS = {
 const TYPE_ORDER = [
 	"all",
 	"bug",
+	"dark",
 	"dragon",
 	"electric",
 	"fairy",

@@ -11,6 +11,7 @@ function createInitialState() {
 		visiblePokemon: [],
 		typeOptions: getPokemonTypeOptions([]),
 		pokemonIndexCache: new Map(),
+		pokemonTypeCache: new Map(),
 		pokemonDetailsCache: new Map(),
 		pokemonDetailsRequests: new Map(),
 		searchTerm: "",

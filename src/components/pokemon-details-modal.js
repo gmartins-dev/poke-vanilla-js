@@ -2,6 +2,7 @@ import { escapeAttribute, escapeHtml } from "../utils/html.js";
 
 const TYPE_TEXT_STYLES = {
 	bug: "bg-[#eff7c2] text-[#6f7b12]",
+	dark: "bg-[#e7ded8] text-[#654f43]",
 	dragon: "bg-[#ede5ff] text-[#5d3edb]",
 	electric: "bg-[#fff4bf] text-[#9c7a00]",
 	fairy: "bg-[#ffe2ec] text-[#ba5777]",
@@ -21,6 +22,7 @@ const TYPE_TEXT_STYLES = {
 };
 const TYPE_HERO_STYLES = {
 	bug: "from-[#dce77f] via-[#edf6b6] to-[#f8fbec]",
+	dark: "from-[#cdbfb7] via-[#ece5e1] to-[#faf8f7]",
 	dragon: "from-[#c8bbff] via-[#e7e0ff] to-[#faf8ff]",
 	electric: "from-[#f9e17c] via-[#fff1be] to-[#fffaf0]",
 	fairy: "from-[#f7bfd2] via-[#ffe4ef] to-[#fff7fb]",
